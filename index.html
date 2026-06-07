@@ -1,0 +1,2148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Trade Pulse AI – Dashboard</title>
+  <style>
+    :root{
+      --bg:#040713;
+      --panel:#0a1020;
+      --panel2:#0c1428;
+      --line:rgba(255,255,255,.06);
+      --text:#f5f7ff;
+      --muted:#9aa3b2;
+      --purple:#a855f7;
+      --purple2:#7c3aed;
+      --green:#22c55e;
+      --blue:#3b82f6;
+      --amber:#f59e0b;
+      --pink:#ec4899;
+      --red:#ef4444;
+      --shadow-sm:0 4px 12px rgba(0,0,0,.25);
+      --shadow-md:0 8px 24px rgba(0,0,0,.35);
+      --safe:env(safe-area-inset-bottom, 0px);
+      --navh:88px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{
+      height:100%;
+      min-height:100%;
+      background:#040713;
+      overflow-x:hidden;
+      overflow-y:auto;
+      overscroll-behavior-y:none;
+    }
+    body{
+      margin:0;
+      font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      color:var(--text);
+      min-height:100dvh;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(168,85,247,.08), transparent 30%),
+        radial-gradient(circle at 75% 18%, rgba(59,130,246,.06), transparent 22%),
+        linear-gradient(180deg, #02040b 0%, #040713 100%);
+      background-attachment:fixed;
+      -webkit-font-smoothing:antialiased;
+    }
+
+    * { -webkit-tap-highlight-color: transparent; }
+
+    .login-container{
+      position:fixed;
+      inset:0;
+      background:#040713;
+      overscroll-behavior:contain;
+      -webkit-overflow-scrolling:touch;
+      z-index:100;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      padding:20px;
+      overflow-y:auto;
+    }
+    .login-card{
+      width:100%;
+      max-width:400px;
+      margin:auto;
+      padding:40px 24px;
+      border-radius:24px;
+      background:linear-gradient(145deg, rgba(10,15,28,.96), rgba(10,18,32,.96));
+      border:1px solid var(--line);
+      box-shadow:var(--shadow-md);
+      text-align:center;
+    }
+    .login-logo{
+      width:auto;
+      max-width:180px;
+      height:auto;
+      margin:0 auto 24px;
+      display:block;
+      object-fit:contain;
+      background:none;
+      padding:0;
+      border-radius:0;
+    }
+    .login-title{font-size:24px;font-weight:700;letter-spacing:-.03em;margin-bottom:8px}
+    .login-subtitle{font-size:14px;color:var(--muted);margin-bottom:28px}
+    .toggle-row{
+      display:flex;
+      margin-bottom:24px;
+      background:rgba(255,255,255,.04);
+      border-radius:14px;
+      padding:4px;
+    }
+    .toggle-btn{
+      flex:1;
+      padding:12px 0;
+      border:0;
+      border-radius:11px;
+      background:transparent;
+      color:var(--muted);
+      font-size:15px;
+      font-weight:600;
+      cursor:pointer;
+      transition:all .2s ease;
+      white-space:nowrap;
+    }
+    .toggle-btn.active{
+      background:var(--purple);
+      color:#fff;
+      box-shadow:0 4px 12px rgba(168,85,247,.25);
+    }
+    .form-group{margin-bottom:16px;text-align:left}
+    .form-group label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    .form-group input{
+      width:100%;
+      height:48px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.04);
+      color:#fff;
+      padding:0 14px;
+      font-size:15px;
+      outline:none;
+      transition:border .2s;
+    }
+    .form-group input:focus{border-color:var(--purple)}
+    .password-wrap{position:relative}
+    .password-wrap input{padding-right:44px}
+    .eye-toggle{
+      position:absolute;
+      right:12px;
+      top:50%;
+      transform:translateY(-50%);
+      background:none;
+      border:0;
+      color:var(--muted);
+      cursor:pointer;
+      font-size:18px;
+      padding:4px;
+      line-height:1;
+    }
+    .invite-note{font-size:12px;color:var(--muted);margin-bottom:20px;text-align:center}
+    .btn{
+      width:100%;
+      height:50px;
+      border:0;
+      border-radius:14px;
+      font-size:16px;
+      font-weight:700;
+      cursor:pointer;
+      background:linear-gradient(90deg, #6d28d9, #8b5cf6);
+      color:#fff;
+      box-shadow:0 6px 18px rgba(124,58,237,.2);
+      transition:opacity .2s;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+    }
+    .btn:hover{opacity:.95}
+    .btn-outline{
+      background:transparent;
+      color:#e9d5ff;
+      border:1px solid rgba(196,181,253,.25);
+      box-shadow:inset 0 0 0 1px rgba(168,85,247,.02);
+    }
+    .error-msg{color:var(--red);font-size:13px;margin-top:10px;text-align:center;min-height:20px}
+    .success-msg{color:var(--green);font-size:13px;margin-top:10px;text-align:center;min-height:20px}
+
+    .app{
+      display:none;
+      width:100%;
+      max-width:430px;
+      margin:0 auto;
+      min-height:100vh;
+      padding-bottom:calc(var(--navh) + 16px + var(--safe));
+      position:relative;
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:16px 16px 0;
+      gap:10px;
+    }
+    .icon-btn{
+      border:0;
+      background:transparent;
+      color:#fff;
+      padding:0;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+      flex:0 0 auto;
+      cursor:pointer;
+    }
+    .icon-btn svg{display:block;width:22px;height:22px}
+    .title{
+      flex:1;
+      min-width:0;
+      font-size:22px;
+      font-weight:700;
+      letter-spacing:-.03em;
+      padding-left:8px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .badge{
+      min-width:20px;
+      height:20px;
+      padding:0 6px;
+      border-radius:999px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      line-height:1;
+      font-size:11px;
+      right:-4px;
+      top:-4px;
+      position:absolute;
+      background:var(--red);
+      color:#fff;
+      font-weight:700;
+      box-shadow:0 4px 10px rgba(239,68,68,.15);
+      z-index:1;
+    }
+
+    .view{display:none}
+    .view.active{display:block}
+    .section{padding:0 16px;margin-top:16px}
+    .panel{
+      background:linear-gradient(180deg, rgba(10,15,28,.96), rgba(10,18,32,.96));
+      border:1px solid var(--line);
+      border-radius:20px;
+      box-shadow:var(--shadow-sm);
+    }
+    .section-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:nowrap;
+      margin-bottom:10px;
+    }
+    .section-title{
+      font-size:17px;
+      font-weight:700;
+      letter-spacing:-.02em;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .chip{
+      height:28px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      background:#0b1020;
+      color:#e5e7eb;
+      padding:0 10px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-size:12px;
+      cursor:pointer;
+      flex-shrink:0;
+      white-space:nowrap;
+    }
+    .chip svg{width:14px;height:14px}
+
+    .balance-card{
+      position:relative;
+      overflow:hidden;
+      border-radius:22px;
+      padding:18px 16px 16px;
+      background:linear-gradient(145deg, rgba(7,10,22,.97) 0%, rgba(11,16,32,.97) 55%, rgba(24,6,38,.97) 100%);
+      border:1px solid rgba(168,85,247,.08);
+      box-shadow:0 0 0 1px rgba(168,85,247,.04), var(--shadow-sm);
+      min-height:200px;
+    }
+    .balance-grid{
+      display:grid;
+      grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);
+      gap:4px;
+      align-items:center;
+    }
+    .balance-label{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-size:15px;
+      color:#d6d9e4;
+      margin-bottom:10px;
+      white-space:nowrap;
+    }
+    .balance-label span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .balance-label .eye{width:18px;height:18px;opacity:.85;flex:0 0 auto;cursor:pointer}
+    .wallet-emoji{font-size:20px;line-height:1;margin-left:6px}
+    .amount{
+      font-size:clamp(28px,7vw,33px);
+      line-height:1.05;
+      font-weight:700;
+      letter-spacing:-.05em;
+      margin:0 0 8px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .fx{font-size:14px;color:var(--muted);margin-bottom:16px;white-space:nowrap}
+    .cta-row{display:flex;gap:10px;flex-wrap:nowrap}
+    .btn{
+      height:42px;
+      border-radius:999px;
+      border:0;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:0 16px;
+      font-size:14px;
+      font-weight:600;
+      cursor:pointer;
+      transition:.15s ease;
+      white-space:nowrap;
+    }
+    .btn:active{transform:scale(.98)}
+    .btn-primary{
+      color:#fff;
+      background:linear-gradient(90deg, #6d28d9, #8b5cf6);
+      box-shadow:0 6px 18px rgba(124,58,237,.2);
+    }
+    .btn-outline{
+      background:transparent;
+      color:#e9d5ff;
+      border:1px solid rgba(196,181,253,.25);
+      box-shadow:inset 0 0 0 1px rgba(168,85,247,.02);
+    }
+    .btn-disabled{opacity:.5;pointer-events:none}
+
+    .quick-actions{
+      display:grid;
+      grid-template-columns:repeat(6, minmax(0,1fr));
+      gap:8px;
+    }
+    .action{
+      height:92px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.05);
+      background:rgba(11,16,32,.88);
+      box-shadow:0 6px 18px rgba(0,0,0,.25);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      padding:0 4px;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+    .action .circle{
+      width:42px;
+      height:42px;
+      border-radius:999px;
+      display:grid;
+      place-items:center;
+      box-shadow:0 0 12px rgba(168,85,247,.1);
+      flex:0 0 auto;
+    }
+    .action .circle svg{width:18px;height:18px;stroke-width:2}
+    .action .label{
+      font-size:11px;
+      font-weight:500;
+      color:#e5e7eb;
+      text-align:center;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width:100%;
+    }
+
+    .overview-grid{display:grid;grid-template-columns:repeat(4, minmax(0,1fr));gap:7px}
+    .stat{
+      border-radius:18px;
+      padding:12px 10px 11px;
+      min-height:120px;
+      background:rgba(11,16,32,.92);
+      overflow:hidden;
+      cursor:pointer;
+    }
+    .stat .ico{
+      width:36px;height:36px;border-radius:999px;display:grid;place-items:center;margin-bottom:12px;
+    }
+    .stat .ico svg{width:17px;height:17px;stroke-width:2}
+    .stat .title{
+      font-size:10px;
+      line-height:1.3;
+      color:#aeb6c5;
+      margin-bottom:6px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .stat .value{
+      font-size:14px;
+      font-weight:700;
+      letter-spacing:-.03em;
+      margin-bottom:6px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .stat .sub{
+      font-size:10px;
+      font-weight:600;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .chart-card{border-radius:22px;padding:14px 14px 10px;overflow:hidden}
+    .chart-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:8px}
+    .chart-title{font-size:17px;font-weight:700;letter-spacing:-.02em;margin-bottom:8px;white-space:nowrap}
+    .profit{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:var(--green);white-space:nowrap}
+    .profit .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px rgba(34,197,94,.35);flex:0 0 auto}
+    .profit .muted{color:var(--muted);font-size:13px;font-weight:500}
+    .chart-wrap{position:relative;height:250px;margin-top:4px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+    .axis-text,.ytext{fill:#e5e7eb;font-size:10px}
+
+    .transactions,.wallet-transactions{border-radius:20px;overflow:hidden}
+    .tx-row,.wallet-tx-row{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:14px 14px;
+      border-bottom:1px solid rgba(255,255,255,.05);
+      cursor:pointer;
+    }
+    .tx-row:last-child,.wallet-tx-row:last-child{border-bottom:0}
+    .tx-ico{
+      width:40px;
+      height:40px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      flex:0 0 auto;
+    }
+    .tx-ico svg{width:24px;height:24px;stroke-width:2}
+    .tx-main{min-width:0;flex:1}
+    .tx-title{font-size:15px;font-weight:700;color:#f8fafc;margin-bottom:4px}
+    .tx-sub{font-size:12px;color:#9aa3b2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .tx-right{text-align:right;flex:0 0 auto;min-width:90px}
+    .tx-amt{font-size:15px;font-weight:700;margin-bottom:4px;white-space:nowrap}
+    .status{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:70px;
+      height:22px;
+      border-radius:999px;
+      background:rgba(34,197,94,.09);
+      color:#34d399;
+      font-size:11px;
+      font-weight:700;
+      padding:0 10px;
+      white-space:nowrap;
+    }
+
+    .overview-card{
+      padding:14px;
+      position:relative;
+      overflow:hidden;
+      background:linear-gradient(145deg, rgba(16,10,37,.92), rgba(11,16,32,.96));
+      border:1px solid rgba(168,85,247,.08);
+      box-shadow:0 0 0 1px rgba(168,85,247,.04), var(--shadow-sm);
+    }
+    .overview-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:12px;
+    }
+    .overview-head h2{
+      margin:0;
+      font-size:18px;
+      font-weight:700;
+      letter-spacing:-.03em;
+      white-space:normal;
+      word-break:break-word;
+    }
+    .hide-balance{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      color:#d8dbe8;
+      font-size:13px;
+      white-space:nowrap;
+      cursor:pointer;
+      user-select:none;
+    }
+    .hide-balance svg{width:16px;height:16px;stroke-width:2}
+    .stat-grid{display:grid;grid-template-columns:repeat(4, minmax(0,1fr));gap:10px}
+    .stat2{
+      min-width:0;
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:14px;
+      background:rgba(11,16,32,.84);
+      padding:12px 12px 11px;
+      overflow:hidden;
+    }
+    .stat2 .label{
+      font-size:12px;
+      line-height:1.35;
+      color:#d7dae6;
+      margin-bottom:8px;
+      white-space:normal;
+      word-break:break-word;
+    }
+    .stat2 .value{
+      font-size:18px;
+      font-weight:800;
+      letter-spacing:-.03em;
+      line-height:1.1;
+      margin-bottom:10px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .stat2 .ico{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:rgba(255,255,255,.04)}
+    .stat2 .ico svg{width:16px;height:16px;stroke-width:2}
+
+    .tabs{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:0 2px;
+      margin:16px 6px 0;
+      overflow-x:auto;
+      scrollbar-width:none;
+    }
+    .tabs::-webkit-scrollbar{display:none}
+    .tab{
+      flex:1 0 auto;
+      padding:13px 16px 12px;
+      color:#c6cad6;
+      font-size:14px;
+      font-weight:500;
+      text-align:center;
+      white-space:nowrap;
+      cursor:pointer;
+      position:relative;
+    }
+    .tab.active{color:#b56cff;font-weight:600}
+    .tab.active:after{
+      content:"";
+      position:absolute;
+      left:0;right:0;bottom:0;
+      height:2px;
+      border-radius:999px;
+      background:linear-gradient(90deg, transparent, #a855f7, transparent);
+      box-shadow:0 0 8px rgba(168,85,247,.25);
+    }
+    .tab-line{height:1px;background:rgba(255,255,255,.07);margin-top:-1px}
+
+    .plans-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:16px 16px 10px;
+    }
+    .plans-head h3{margin:0;font-size:17px;font-weight:700;letter-spacing:-.02em}
+    .compare-btn{
+      border:1px solid rgba(122,140,255,.18);
+      background:linear-gradient(180deg, rgba(48,58,100,.35), rgba(22,28,51,.65));
+      color:#b7c0ff;
+      height:34px;
+      padding:0 13px;
+      border-radius:999px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:13px;
+      font-weight:500;
+      flex-shrink:0;
+      white-space:nowrap;
+      cursor:pointer;
+    }
+    .compare-btn svg{width:16px;height:16px;stroke-width:2}
+
+    .plan-card{
+      margin:0 16px 10px;
+      padding:14px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(180deg, rgba(8,12,24,.96), rgba(9,14,28,.94));
+      box-shadow:var(--shadow-sm);
+    }
+    .plan-main{
+      display:grid;
+      grid-template-columns:90px minmax(0,1fr) 110px;
+      gap:12px;
+      align-items:stretch;
+    }
+    .plan-badge{
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.06);
+      background:rgba(255,255,255,.03);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      padding:10px 8px;
+      gap:6px;
+      text-align:center;
+      overflow:hidden;
+    }
+    .plan-badge .name{font-size:12px;line-height:1.2;white-space:normal;word-break:break-word;max-width:100%}
+    .plan-badge svg{width:28px;height:28px}
+    .plan-copy{min-width:0;padding-top:2px}
+    .plan-title-row{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:nowrap;
+      margin-bottom:8px;
+    }
+    .plan-title{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .popular{
+      font-size:11px;
+      font-weight:500;
+      color:#d9c0ff;
+      background:rgba(168,85,247,.12);
+      border:1px solid rgba(168,85,247,.16);
+      padding:4px 8px;
+      border-radius:999px;
+      white-space:nowrap;
+      flex-shrink:0;
+    }
+    .plan-desc{margin:0;color:#c4cad8;font-size:13px;line-height:1.5;white-space:normal}
+    .profit-box{
+      border-left:1px solid rgba(255,255,255,.06);
+      padding-left:14px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+    }
+    .profit-box .small{font-size:12px;white-space:nowrap}
+    .profit-box .rate{font-size:32px;font-weight:800;letter-spacing:-.05em;white-space:nowrap}
+    .invest-now{
+      margin-top:auto;
+      width:100%;
+      height:42px;
+      border:0;
+      border-radius:10px;
+      color:#fff;
+      font-size:14px;
+      font-weight:700;
+      white-space:nowrap;
+      cursor:pointer;
+      box-shadow:0 6px 16px rgba(0,0,0,.2);
+    }
+    .green-btn{background:linear-gradient(180deg, #1f8f49, #106b33)}
+    .purple-btn{background:linear-gradient(180deg, #7a33db, #5420a7)}
+    .amber-btn{background:linear-gradient(180deg, #d98b13, #a86200)}
+    .blue-btn{background:linear-gradient(180deg, #2877d7, #1451a6)}
+
+    .plan-meta{
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0,1fr));
+      gap:10px;
+      margin-top:12px;
+      padding-top:12px;
+      border-top:1px solid rgba(255,255,255,.06);
+    }
+    .meta-item{
+      min-width:0;
+      padding-right:8px;
+      border-right:1px solid rgba(255,255,255,.05);
+    }
+    .meta-item:last-child{border-right:0;padding-right:0}
+    .meta-label{
+      color:#98a2b7;
+      font-size:11px;
+      margin-bottom:6px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .meta-value{
+      font-size:13px;
+      font-weight:700;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .feature-row{
+      margin:4px 16px 0;
+      padding:14px 12px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.06);
+      background:rgba(9,14,28,.90);
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0,1fr));
+      gap:12px;
+    }
+    .feature{display:flex;align-items:flex-start;gap:10px;min-width:0}
+    .feature .icon{
+      width:28px;height:28px;border-radius:999px;display:grid;place-items:center;flex:0 0 auto;
+      border:1px solid rgba(255,255,255,.06);
+      background:rgba(255,255,255,.03);
+    }
+    .feature .icon svg{width:14px;height:14px;stroke-width:2}
+    .feature .txt b{display:block;font-size:11px;line-height:1.3;margin-bottom:2px;white-space:nowrap}
+    .feature .txt span{font-size:10px;color:#9aa3b2;white-space:nowrap}
+
+    .promo{
+      margin:14px 16px 0;
+      padding:16px;
+      border-radius:18px;
+      position:relative;
+      overflow:hidden;
+      border:1px solid rgba(168,85,247,.08);
+      background:linear-gradient(135deg, rgba(48,14,78,.96), rgba(25,11,58,.95));
+      box-shadow:0 0 0 1px rgba(168,85,247,.05), var(--shadow-sm);
+    }
+    .promo:after{
+      content:"";
+      position:absolute;
+      right:8px;
+      bottom:-6px;
+      width:120px;
+      height:120px;
+      background:radial-gradient(circle at 50% 50%, rgba(255,255,255,.06), transparent 55%);
+      opacity:.6;
+      pointer-events:none;
+    }
+    .promo-grid{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      gap:16px;
+      align-items:center;
+      position:relative;
+      z-index:1;
+    }
+    .promo h4{margin:0 0 8px;font-size:18px;font-weight:700;letter-spacing:-.02em}
+    .promo p{margin:0;font-size:13px;color:#d8d7ef;max-width:240px}
+    .upgrade{
+      border:1px solid rgba(189,160,255,.24);
+      background:rgba(13,11,40,.3);
+      color:#eee7ff;
+      border-radius:12px;
+      padding:12px 14px;
+      font-size:13px;
+      font-weight:700;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      white-space:nowrap;
+      cursor:pointer;
+    }
+    .upgrade svg{width:16px;height:16px;stroke-width:2}
+
+    .withdraw-hero{
+      padding:16px;
+      overflow:hidden;
+      background:linear-gradient(145deg, rgba(7,10,22,.98), rgba(10,15,30,.98));
+      border:1px solid rgba(168,85,247,.08);
+    }
+    .withdraw-hero-grid{
+      display:grid;
+      grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);
+      gap:12px;
+      align-items:center;
+    }
+    .withdraw-copy{min-width:0}
+    .withdraw-label{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-size:15px;
+      color:#d6d9e4;
+      margin-bottom:12px;
+      white-space:nowrap;
+    }
+    .withdraw-eye{width:18px;height:18px;opacity:.85;flex:0 0 auto;cursor:pointer}
+    .withdraw-balance{
+      font-size:clamp(30px,7vw,34px);
+      font-weight:700;
+      line-height:1.05;
+      letter-spacing:-.05em;
+      margin-bottom:8px;
+      white-space:nowrap;
+    }
+    .withdraw-fx{font-size:14px;color:var(--muted)}
+    .withdrawable-block{margin-top:18px}
+    .withdrawable-label{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-size:14px;
+      color:#cdd3df;
+      margin-bottom:8px;
+      white-space:nowrap;
+    }
+    .info-ico{width:16px;height:16px;opacity:.8;flex:0 0 auto}
+    .withdrawable-value{font-size:18px;font-weight:700;color:#b56cff}
+    .withdraw-art{display:flex;align-items:center;justify-content:center}
+    .withdraw-art svg{width:100%;max-width:180px;height:auto}
+    .withdraw-section-title{font-size:17px;font-weight:600;margin-bottom:14px}
+
+    .withdraw-method-grid{
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0,1fr));
+      gap:10px;
+      transform:translateZ(0);
+      will-change:transform;
+    }
+    .method-card{
+      position:relative;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.07);
+      background:#0b1020;
+      padding:14px 10px 13px;
+      text-align:center;
+      color:#fff;
+      cursor:pointer;
+      transform:translateZ(0);
+      backface-visibility:hidden;
+      -webkit-backface-visibility:hidden;
+      will-change:transform, box-shadow, border-color;
+      transition:transform .14s ease, border-color .14s ease, box-shadow .14s ease, background-color .14s ease;
+    }
+    .method-card.active{border-color:#9333ea;box-shadow:0 0 0 1px rgba(147,51,234,.1)}
+    .method-card:active{transform:scale(.985) translateZ(0)}
+    .method-icon{width:48px;height:48px;border-radius:50%;margin:0 auto 10px;display:grid;place-items:center}
+    .method-icon svg{width:28px;height:28px;stroke-width:2}
+    .method-purple{background:linear-gradient(135deg, #6d28d9, #a855f7)}
+    .method-green{background:linear-gradient(135deg, #15803d, #22c55e)}
+    .method-amber{background:linear-gradient(135deg, #b45309, #f59e0b)}
+    .method-blue{background:linear-gradient(135deg, #1d4ed8, #3b82f6)}
+    .method-name{font-size:14px;font-weight:600}
+    .method-time{font-size:12px;color:#9ca3af;margin-top:6px}
+    .method-check{
+      position:absolute;
+      top:10px;
+      right:10px;
+      width:20px;
+      height:20px;
+      border-radius:50%;
+      background:#9333ea;
+      color:#fff;
+      display:grid;
+      place-items:center;
+      font-size:11px;
+      font-weight:700;
+    }
+
+    .withdraw-form{
+      padding:16px;
+      min-height:420px;
+      overflow:hidden;
+      contain:layout paint;
+      transition:opacity .12s ease;
+      will-change:opacity;
+    }
+    .withdraw-form.switching{opacity:.35}
+    .field-label{font-size:14px;color:#cfd3dd;margin-bottom:10px}
+    .amount-input{
+      height:56px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.08);
+      background:#0b1020;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 16px;
+      margin-bottom:12px;
+    }
+    .placeholder{color:#707887;font-size:16px}
+    .currency{font-weight:600;color:#c7ccd5}
+    .amount-presets{
+      display:grid;
+      grid-template-columns:repeat(5, minmax(0,1fr));
+      gap:10px;
+      margin-bottom:16px;
+    }
+    .preset{
+      height:40px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.07);
+      background:#0b1020;
+      color:#e5e7eb;
+      font-size:13px;
+      font-weight:500;
+      cursor:pointer;
+    }
+    .preset-max{color:#b56cff}
+    .fee-row,.receive-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .fee-row{color:#d4d8e1;margin-bottom:12px;font-size:14px}
+    .receive-row{font-size:16px;font-weight:700;color:#22c55e;margin-bottom:0}
+    .receive-row span:first-child{font-size:15px;font-weight:400;color:#d4d8e1}
+    .withdraw-btn{
+      width:100%;
+      height:52px;
+      border:0;
+      border-radius:14px;
+      color:#fff;
+      font-size:16px;
+      font-weight:700;
+      cursor:pointer;
+      background:linear-gradient(180deg, #7c3aed, #5b21b6);
+      box-shadow:0 6px 18px rgba(124,58,237,.18);
+    }
+    .notice-box{margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06)}
+    .notice-title{color:#b56cff;font-weight:600;margin-bottom:8px}
+    .notice-text{color:#9ca3af;font-size:14px;line-height:1.6}
+    .field-error{color:#f87171;font-size:12px;margin-top:-8px;margin-bottom:8px;display:none}
+
+    .wallet-hero{
+      padding:16px;
+      overflow:hidden;
+      background:linear-gradient(145deg, rgba(7,10,22,.98), rgba(10,15,30,.98));
+      border:1px solid rgba(168,85,247,.08);
+    }
+    .wallet-hero-grid{
+      display:grid;
+      grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);
+      gap:14px;
+      align-items:center;
+    }
+    .wallet-label{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-size:15px;
+      color:#d6d9e4;
+      margin-bottom:12px;
+      white-space:nowrap;
+    }
+    .wallet-eye{width:18px;height:18px;opacity:.85;flex:0 0 auto}
+    .wallet-balance{
+      font-size:clamp(31px,7vw,35px);
+      font-weight:700;
+      line-height:1.05;
+      letter-spacing:-.05em;
+      margin-bottom:8px;
+      white-space:nowrap;
+    }
+    .wallet-fx{font-size:14px;color:var(--muted)}
+    .wallet-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+    .wallet-stat{min-width:0}
+    .wallet-stat-split{padding-left:14px;border-left:1px solid rgba(255,255,255,.07)}
+    .wallet-stat-label{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      font-size:14px;
+      color:#cdd3df;
+      margin-bottom:8px;
+      white-space:nowrap;
+    }
+    .wallet-stat-value{font-size:18px;font-weight:700;white-space:nowrap}
+    .wallet-green{color:#22f06a}
+    .wallet-purple{color:#b56cff}
+    .wallet-art-container{display:flex;align-items:center;justify-content:center}
+    .wallet-art-container svg{width:100%;max-width:195px;height:auto}
+
+    .wallet-actions{
+      display:grid;
+      grid-template-columns:repeat(5, minmax(0,1fr));
+      gap:10px;
+    }
+    .wallet-action{
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.06);
+      background:#0b1020;
+      padding:14px 6px 13px;
+      text-align:center;
+      cursor:pointer;
+      color:#fff;
+      min-width:0;
+      overflow:hidden;
+    }
+    .wallet-action-ico{
+      width:40px;
+      height:40px;
+      border-radius:50%;
+      margin:0 auto 10px;
+      display:grid;
+      place-items:center;
+    }
+    .wallet-action-ico svg{width:20px;height:20px;stroke-width:2;color:#fff}
+    .wallet-action-ico.green{background:rgba(34,197,94,.14);color:#22c55e}
+    .wallet-action-ico.purple{background:rgba(168,85,247,.14);color:#b56cff}
+    .wallet-action-ico.blue{background:rgba(59,130,246,.14);color:#60a5fa}
+    .wallet-action-ico.amber{background:rgba(245,158,11,.14);color:#f59e0b}
+    .wallet-action-ico.cobalt{background:rgba(96,165,250,.14);color:#60a5fa}
+    .wallet-action-title{
+      font-size:13px;
+      font-weight:600;
+      line-height:1.2;
+      margin-bottom:4px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .wallet-action-sub{
+      font-size:11px;
+      color:#9ca3af;
+      line-height:1.15;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .wallet-head{margin-bottom:12px}
+    .wallet-manage{color:#b56cff}
+    .wallet-card-list{padding:2px 0;overflow:hidden}
+    .wallet-account{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      padding:16px 14px;
+      border-bottom:1px solid rgba(255,255,255,.05);
+    }
+    .wallet-account:last-child{border-bottom:0}
+    .wallet-account-top-row{display:flex;align-items:center;gap:12px}
+    .wallet-account-left{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
+    .wallet-coin{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto}
+    .wallet-coin svg{width:24px;height:24px;stroke-width:2}
+    .wallet-coin.purple{background:linear-gradient(135deg, #5b21b6, #7c3aed)}
+    .wallet-coin.green{background:linear-gradient(135deg, #15803d, #22c55e)}
+    .wallet-coin.amber{background:linear-gradient(135deg, #a16207, #f59e0b)}
+    .wallet-account-info{min-width:0;flex:1}
+    .wallet-account-top{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+    .wallet-account-name{
+      font-size:15px;
+      font-weight:600;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width:220px;
+    }
+    .primary-tag{
+      font-size:10px;
+      color:#cfa8ff;
+      background:rgba(168,85,247,.12);
+      border:1px solid rgba(168,85,247,.14);
+      padding:2px 6px;
+      border-radius:999px;
+      flex-shrink:0;
+      white-space:nowrap;
+    }
+    .wallet-account-value{font-size:15px;font-weight:700;margin-bottom:4px;white-space:nowrap}
+    .wallet-account-sub{font-size:12px;color:#9ca3af;white-space:nowrap}
+    .row-chevron{width:18px;height:18px;color:#9097a7;flex-shrink:0}
+    .wallet-account-actions{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding-left:52px;
+    }
+    .small-action{
+      height:36px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,.08);
+      background:#0b1020;
+      color:#e8ebf1;
+      padding:0 12px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-size:12px;
+      font-weight:500;
+      white-space:nowrap;
+      cursor:pointer;
+    }
+    .small-action svg{width:14px;height:14px;stroke-width:2}
+    .deposit-purple{color:#c792ff;background:rgba(168,85,247,.14);border-color:rgba(168,85,247,.15)}
+    .deposit-green{color:#22c55e;background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.14)}
+    .deposit-amber{color:#f59e0b;background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.14)}
+    .deposit-blue{color:#60a5fa;background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.14)}
+
+    .secure-banner{
+      padding:16px;
+      background:linear-gradient(135deg, rgba(27,9,55,.95), rgba(10,15,30,.98));
+      border:1px solid rgba(168,85,247,.08);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+    }
+
+    .community-box{
+      padding:16px;
+    }
+    .community-feed{
+      min-height:240px;
+      max-height:360px;
+      overflow:auto;
+    }
+    .community-input-bar{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      margin-top:12px;
+      padding:12px;
+      background:#0b1020;
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:16px;
+    }
+    .community-input-placeholder{
+      flex:1;
+      min-width:0;
+      border:0;
+      outline:none;
+      background:transparent;
+      color:#fff;
+      font-size:14px;
+    }
+    .community-emoji-btn,
+    .community-send-btn{
+      border:0;
+      background:rgba(255,255,255,.04);
+      color:#fff;
+      width:38px;
+      height:38px;
+      border-radius:12px;
+      cursor:pointer;
+      display:grid;
+      place-items:center;
+      flex:0 0 auto;
+    }
+    .community-send-btn svg{width:18px;height:18px}
+
+    .drawer-overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.55);
+      backdrop-filter:blur(6px);
+      z-index:120;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .2s ease;
+    }
+    .drawer-overlay.open{opacity:1;pointer-events:auto}
+    .drawer-panel{
+      position:fixed;
+      top:0;
+      left:0;
+      bottom:0;
+      width:min(88vw, 340px);
+      background:linear-gradient(180deg, rgba(10,15,28,.99), rgba(10,18,32,.99));
+      border-right:1px solid rgba(255,255,255,.06);
+      z-index:121;
+      transform:translateX(-102%);
+      transition:transform .22s ease;
+      overflow:auto;
+      padding:16px;
+    }
+    .drawer-panel.open{transform:translateX(0)}
+    .drawer-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+    .drawer-close{
+      width:36px;height:36px;border:0;border-radius:10px;background:rgba(255,255,255,.05);color:#fff;cursor:pointer
+    }
+    .drawer-profile{
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.06);
+      background:rgba(255,255,255,.03);
+      padding:14px;
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+    }
+    .drawer-avatar{
+      width:56px;height:56px;border-radius:50%;
+      background:linear-gradient(135deg, #5b21b6, #a855f7);
+      display:grid;
+      place-items:center;
+      flex:0 0 auto;
+      overflow:hidden;
+      position:relative;
+    }
+    .drawer-avatar img{width:100%;height:100%;object-fit:cover}
+    .avatar-initial{font-size:24px;font-weight:800}
+    .drawer-name{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      flex-wrap:nowrap;
+      min-width:0;
+      line-height:1.1;
+    }
+    .verified-check{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:18px;
+      height:18px;
+      flex:0 0 auto;
+      margin-top:0;
+    }
+    .drawer-membership{color:#cfd3dd;font-size:13px;margin-top:4px}
+    .drawer-meta{margin-top:6px;font-size:12px;color:#9ca3af}
+    .drawer-vip-card{
+      margin-top:14px;
+      padding:14px;
+      border-radius:18px;
+      border:1px solid rgba(168,85,247,.12);
+      background:linear-gradient(135deg, rgba(48,14,78,.96), rgba(25,11,58,.95));
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:14px;
+      cursor:pointer;
+    }
+    .drawer-menu{
+      margin-top:14px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .drawer-menu-item{
+      padding:12px 14px;
+      border-radius:14px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.05);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      cursor:pointer;
+      color:#fff;
+    }
+    .drawer-menu-item small{color:#9ca3af}
+    .copy-uid-btn{
+      background:rgba(255,255,255,.08);
+      border:none;
+      cursor:pointer;
+      padding:4px 8px;
+      border-radius:8px;
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      font-size:12px;
+      color:#cbd5e1;
+      transition:all .2s;
+      font-weight:normal;
+    }
+    .copy-uid-btn:hover{background:rgba(168,85,247,.2);color:#c084fc}
+    .copy-uid-btn svg{width:14px;height:14px}
+
+    .modal-overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.55);
+      backdrop-filter:blur(6px);
+      z-index:140;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .2s ease;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+    }
+    .modal-overlay.open{opacity:1;pointer-events:auto}
+    .modal-panel{
+      width:100%;
+      max-width:420px;
+      background:linear-gradient(180deg, rgba(10,15,28,.98), rgba(10,18,32,.98));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:22px;
+      box-shadow:var(--shadow-md);
+      padding:18px;
+      max-height:88vh;
+      overflow:auto;
+    }
+    .modal-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:16px;
+    }
+    .modal-title{font-size:18px;font-weight:700;letter-spacing:-.02em}
+    .modal-close-btn{
+      width:36px;height:36px;border:0;border-radius:10px;background:rgba(255,255,255,.05);color:#fff;cursor:pointer
+    }
+
+    .bottom-nav{
+      position:fixed;
+      left:50%;
+      transform:translateX(-50%);
+      bottom:0;
+      width:min(100%, 430px);
+      height:calc(var(--navh) + var(--safe));
+      padding:10px 10px calc(10px + var(--safe));
+      background:linear-gradient(180deg, rgba(6,9,18,.65), rgba(6,9,18,.96));
+      border-top:1px solid rgba(255,255,255,.06);
+      display:grid;
+      grid-template-columns:repeat(5, minmax(0,1fr));
+      gap:8px;
+      z-index:90;
+      backdrop-filter:blur(12px);
+    }
+    .nav-item{
+      border:0;
+      background:transparent;
+      color:#9ca3af;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      font-size:11px;
+      cursor:pointer;
+      position:relative;
+    }
+    .nav-item svg{width:22px;height:22px;stroke-width:2}
+    .nav-item.active{color:#c084fc}
+    .nav-item .nav-badge{
+      position:absolute;
+      right:22%;
+      top:0;
+      min-width:18px;
+      height:18px;
+      border-radius:999px;
+      background:var(--red);
+      color:#fff;
+      font-size:10px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:0 4px;
+    }
+
+    @media (max-width: 420px){
+      .quick-actions{grid-template-columns:repeat(3, minmax(0,1fr))}
+      .overview-grid,.stat-grid,.feature-row,.withdraw-method-grid,.wallet-actions{grid-template-columns:repeat(2, minmax(0,1fr))}
+      .plan-main{grid-template-columns:76px minmax(0,1fr)}
+      .profit-box{grid-column:1 / -1;border-left:0;padding-left:0;border-top:1px solid rgba(255,255,255,.06);padding-top:12px}
+      .wallet-hero-grid,.withdraw-hero-grid{grid-template-columns:1fr}
+      .wallet-art-container,.withdraw-art{display:none}
+      .amount-presets{grid-template-columns:repeat(2, minmax(0,1fr))}
+      .wallet-account-actions{padding-left:0;flex-wrap:wrap}
+    }
+
+    .hidden{display:none !important}
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN / AUTH -->
+  <div id="loginScreen" class="login-container">
+    <div class="login-card">
+      <img src="" alt="Logo" class="login-logo" onerror="this.style.display='none'">
+      <div id="loginTitle" class="login-title">Sign In</div>
+      <div id="loginSubtitle" class="login-subtitle">Access your private trading dashboard</div>
+
+      <div class="toggle-row">
+        <button type="button" id="signInToggle" class="toggle-btn active">Sign In</button>
+        <button type="button" id="signUpToggle" class="toggle-btn">Sign Up</button>
+      </div>
+
+      <form id="authForm">
+        <div class="form-group" id="fullNameGroup" style="display:none;">
+          <label for="fullName">Full Name</label>
+          <input id="fullName" type="text" placeholder="Enter full name">
+        </div>
+
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input id="username" type="text" placeholder="Enter username" autocomplete="username">
+        </div>
+
+        <div class="form-group" id="emailGroup" style="display:none;">
+          <label for="email">Email</label>
+          <input id="email" type="email" placeholder="Enter email" autocomplete="email">
+        </div>
+
+        <div class="form-group password-wrap">
+          <label for="password">Password</label>
+          <input id="password" type="password" placeholder="Enter password" autocomplete="current-password">
+          <button type="button" id="eyeBtn" class="eye-toggle">👁️</button>
+        </div>
+
+        <div class="form-group" id="inviteCodeGroup">
+          <label for="inviteCode">Invitation Code</label>
+          <input id="inviteCode" type="text" placeholder="Enter invitation code">
+        </div>
+
+        <div id="inviteNote" class="invite-note">Use the invitation code to create an account or sign in.</div>
+
+        <button id="submitBtn" type="submit" class="btn">Sign In</button>
+        <button type="button" id="forgotPasswordBtn" class="btn btn-outline" style="margin-top:10px;">Forgot Password?</button>
+
+        <div id="errorMsg" class="error-msg"></div>
+        <div id="successMsg" class="success-msg"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- DRAWER -->
+  <div id="drawerOverlay" class="drawer-overlay"></div>
+  <aside id="drawerPanel" class="drawer-panel">
+    <div class="drawer-header">
+      <div style="font-weight:700;font-size:18px;">Menu</div>
+      <button id="drawerCloseBtn" class="drawer-close" type="button">✕</button>
+    </div>
+
+    <div class="drawer-profile">
+      <div id="drawerAvatar" class="drawer-avatar">
+        <span class="avatar-initial">U</span>
+      </div>
+      <div style="min-width:0;flex:1">
+        <div class="drawer-name">
+          <span id="drawerFullName" style="font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">User</span>
+          <span class="verified-check" title="Verified">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5">
+              <path d="m5 13 4 4L19 7"></path>
+            </svg>
+          </span>
+        </div>
+        <div id="drawerMembership" class="drawer-membership">Standard Member</div>
+        <div class="drawer-meta">
+          UID: <span id="drawerUserId">------</span>
+          <button id="copyUidBtn" class="copy-uid-btn" type="button" style="margin-left:6px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="10" height="10" rx="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            Copy
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="upgradeVipBtn" class="drawer-vip-card">
+      <div>
+        <div style="font-size:18px;font-weight:700;">👑 Upgrade to VIP</div>
+        <div style="font-size:13px;color:#c9ced8;margin-top:4px;">Unlock higher limits.</div>
+      </div>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <path d="m9 6 6 6-6 6"></path>
+      </svg>
+    </div>
+
+    <div class="drawer-menu">
+      <div class="drawer-menu-item" data-nav="home"><span>Home</span><small>Dashboard</small></div>
+      <div class="drawer-menu-item" data-nav="invest"><span>Invest</span><small>Plans</small></div>
+      <div class="drawer-menu-item" data-nav="wallet"><span>Wallet</span><small>Actions</small></div>
+      <div class="drawer-menu-item" data-nav="withdraw"><span>Withdraw</span><small>Cash out</small></div>
+      <div class="drawer-menu-item" data-nav="community"><span>Community</span><small>Chat</small></div>
+      <div class="drawer-menu-item" data-drawer-action="logout"><span>Logout</span><small>Sign out</small></div>
+    </div>
+  </aside>
+
+  <!-- MODALS -->
+  <div id="overviewDetailModal" class="modal-overlay">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div class="modal-title" id="overviewDetailTitle">Overview</div>
+        <button class="modal-close-btn" type="button" onclick="this.closest('.modal-overlay').classList.remove('open')">✕</button>
+      </div>
+      <div id="overviewDetailValue" style="font-size:34px;font-weight:800;letter-spacing:-.04em;margin:8px 0 10px;">₦ 0.00</div>
+      <div id="overviewDetailDesc" style="color:#9ca3af;font-size:14px;">Details</div>
+    </div>
+  </div>
+
+  <div id="notificationsModal" class="modal-overlay">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div class="modal-title">Notifications</div>
+        <button class="modal-close-btn" type="button" onclick="this.closest('.modal-overlay').classList.remove('open')">✕</button>
+      </div>
+      <div id="notificationsList"></div>
+    </div>
+  </div>
+
+  <div id="depositModal" class="modal-overlay">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div class="modal-title">Deposit</div>
+        <button class="modal-close-btn" type="button" onclick="this.closest('.modal-overlay').classList.remove('open')">✕</button>
+      </div>
+      <div class="notice-box">
+        <div class="notice-title">Deposit</div>
+        <div class="notice-text">Add your deposit flow here.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="transferModal" class="modal-overlay">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div class="modal-title">Transfer</div>
+        <button class="modal-close-btn" type="button" onclick="this.closest('.modal-overlay').classList.remove('open')">✕</button>
+      </div>
+      <div class="notice-box">
+        <div class="notice-title">Transfer</div>
+        <div class="notice-text">Add your transfer flow here.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="transactionModal" class="modal-overlay">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div class="modal-title">Transaction History</div>
+        <button class="modal-close-btn" type="button" onclick="this.closest('.modal-overlay').classList.remove('open')">✕</button>
+      </div>
+      <div id="recentTransactions"></div>
+    </div>
+  </div>
+
+  <div id="cardModal" class="modal-overlay">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div class="modal-title">Card Management</div>
+        <button class="modal-close-btn" type="button" onclick="this.closest('.modal-overlay').classList.remove('open')">✕</button>
+      </div>
+      <div class="form-group">
+        <label>Card Number</label>
+        <input id="cardNumber" type="text" placeholder="Card number">
+      </div>
+      <div class="form-group">
+        <label>Expiry</label>
+        <input id="cardExpiry" type="text" placeholder="MM/YY">
+      </div>
+      <div class="form-group">
+        <label>CVV</label>
+        <input id="cardCvv" type="password" placeholder="CVV">
+      </div>
+      <button id="saveCardBtn" class="btn" type="button">Save Card</button>
+      <div id="cardDetailsDisplay" style="margin-top:14px;"></div>
+    </div>
+  </div>
+
+  <div id="withdrawSuccessModal" class="modal-overlay">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div class="modal-title">Withdrawal Submitted</div>
+        <button class="modal-close-btn" type="button" onclick="this.closest('.modal-overlay').classList.remove('open')">✕</button>
+      </div>
+      <div class="notice-box">
+        <div class="notice-title">Success</div>
+        <div class="notice-text">Your withdrawal request has been submitted.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="mainApp" class="app">
+    <div class="topbar">
+      <button id="menuBtn" class="icon-btn" type="button" aria-label="Open menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+      </button>
+
+      <div id="pageTitle" class="title">Home</div>
+
+      <button id="notificationBell" class="icon-btn" type="button" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M15 17H5a2 2 0 0 1-2-2V8a7 7 0 1 1 14 0v7a2 2 0 0 1-2 2Z"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+        <span id="notificationBadge" class="badge" style="display:none;">0</span>
+      </button>
+    </div>
+
+    <!-- HOME -->
+    <section id="homeView" class="view active">
+      <div class="section">
+        <div class="balance-card panel">
+          <div class="balance-grid">
+            <div>
+              <div class="balance-label">
+                <span>Available Balance</span>
+                <svg id="homeBalanceEye" class="eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </div>
+              <div id="homeBalance" class="amount">₦ 0.00</div>
+              <div id="homeFx" class="fx">≈ $ 0.00</div>
+              <div class="cta-row">
+                <button class="btn btn-primary" data-nav="wallet" type="button">Wallet</button>
+                <button class="btn btn-outline" id="hideBalanceToggle" type="button">
+                  <span>Hide Balance</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="home-wallet-placeholder">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M4 7h16v12H4z"></path>
+                <path d="M4 11h16"></path>
+                <circle cx="17" cy="13.5" r="1.1"></circle>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="quick-actions">
+          <div class="action" data-nav="wallet">
+            <div class="circle" style="background:rgba(34,197,94,.12);color:#4ade80;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3v18"></path><path d="M7 8c0-2.2 2.2-4 5-4s5 1.8 5 4-2.2 4-5 4-5 1.8-5 4 2.2 4 5 4 5-1.8 5-4"></path></svg>
+            </div>
+            <div class="label">Wallet</div>
+          </div>
+          <div class="action" data-nav="invest">
+            <div class="circle" style="background:rgba(168,85,247,.12);color:#c084fc;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 17l6-6 4 4 8-8"></path><path d="M14 7h7v7"></path></svg>
+            </div>
+            <div class="label">Invest</div>
+          </div>
+          <div class="action" data-nav="withdraw">
+            <div class="circle" style="background:rgba(245,158,11,.12);color:#f59e0b;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 21V3"></path><path d="m7 14 5 5 5-5"></path></svg>
+            </div>
+            <div class="label">Withdraw</div>
+          </div>
+          <div class="action" data-nav="community">
+            <div class="circle" style="background:rgba(59,130,246,.12);color:#60a5fa;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path></svg>
+            </div>
+            <div class="label">Community</div>
+          </div>
+          <div class="action" data-nav="wallet">
+            <div class="circle" style="background:rgba(96,165,250,.12);color:#60a5fa;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M7 7h14"></path><path d="m18 4 3 3-3 3"></path><path d="M17 17H3"></path><path d="m6 14-3 3 3 3"></path></svg>
+            </div>
+            <div class="label">Transfer</div>
+          </div>
+          <div class="action" data-nav="wallet">
+            <div class="circle" style="background:rgba(239,68,68,.12);color:#ef4444;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="M3 9h18"></path></svg>
+            </div>
+            <div class="label">Cards</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="overview-card panel">
+          <div class="overview-head">
+            <h2>Overview</h2>
+            <div id="overviewPeriodChip" class="chip">Today
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6-6 6"></path></svg>
+            </div>
+          </div>
+
+          <div id="overviewCards" class="stat-grid"></div>
+
+          <div class="chart-card panel" style="margin-top:14px;">
+            <div class="chart-top">
+              <div>
+                <div class="chart-title">Growth Chart</div>
+                <div class="profit">
+                  <span class="dot"></span>
+                  <span id="profitPercent">0%</span>
+                  <span class="muted">Today</span>
+                </div>
+              </div>
+            </div>
+            <div class="chart-wrap">
+              <div id="chartContainer"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Recent Transactions</div>
+          <div class="chip" data-nav="wallet">View All</div>
+        </div>
+        <div class="transactions panel" id="recentTransactions"></div>
+      </div>
+    </section>
+
+    <!-- INVEST -->
+    <section id="investView" class="view">
+      <div class="section">
+        <div class="plans-head panel">
+          <h3>Investment Plans</h3>
+          <button class="compare-btn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3v18h18"></path><path d="M7 14l4-4 4 4 6-6"></path></svg>
+            Compare
+          </button>
+        </div>
+
+        <div id="investTabs" class="tabs">
+          <div class="tab active" data-tab="plans">Plans</div>
+          <div class="tab" data-tab="myinvestments">My Investments</div>
+          <div class="tab" data-tab="history">Investment History</div>
+        </div>
+        <div class="tab-line"></div>
+
+        <div id="investPlansView">
+          <div class="plan-card">
+            <div class="plan-main">
+              <div class="plan-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2">
+                  <path d="M12 3v18"></path>
+                  <path d="M7 8c0-2 2.2-4 5-4s5 2 5 4-2 4-5 4-5 2-5 4 2.2 4 5 4 5-2 5-4"></path>
+                </svg>
+                <div class="name">Starter</div>
+              </div>
+              <div class="plan-copy">
+                <div class="plan-title-row">
+                  <div class="plan-title">Starter Plan</div>
+                  <div class="popular">Popular</div>
+                </div>
+                <p class="plan-desc">Begin with the lowest entry package.</p>
+                <div class="plan-meta">
+                  <div class="meta-item"><div class="meta-label">Min</div><div id="planMin1" class="meta-value">₦ 1,000.00</div></div>
+                  <div class="meta-item"><div class="meta-label">Max</div><div id="planMax1" class="meta-value">₦ 49,999.00</div></div>
+                  <div class="meta-item"><div class="meta-label">Daily</div><div class="meta-value">3%</div></div>
+                  <div class="meta-item"><div class="meta-label">Duration</div><div class="meta-value">24h</div></div>
+                </div>
+              </div>
+              <div class="profit-box">
+                <div>
+                  <div class="small">Profit</div>
+                  <div class="rate">3%</div>
+                </div>
+                <button class="invest-now green-btn" type="button">Invest Now</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="plan-card">
+            <div class="plan-main">
+              <div class="plan-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2">
+                  <path d="M12 3v18"></path>
+                  <path d="M7 8c0-2 2.2-4 5-4s5 2 5 4-2 4-5 4-5 2-5 4 2.2 4 5 4 5-2 5-4"></path>
+                </svg>
+                <div class="name">VIP</div>
+              </div>
+              <div class="plan-copy">
+                <div class="plan-title-row">
+                  <div class="plan-title">VIP Plan</div>
+                  <div class="popular">Best Seller</div>
+                </div>
+                <p class="plan-desc">Higher return and stronger growth exposure.</p>
+                <div class="plan-meta">
+                  <div class="meta-item"><div class="meta-label">Min</div><div id="planMin2" class="meta-value">₦ 50,000.00</div></div>
+                  <div class="meta-item"><div class="meta-label">Max</div><div id="planMax2" class="meta-value">₦ 199,999.00</div></div>
+                  <div class="meta-item"><div class="meta-label">Daily</div><div class="meta-value">5%</div></div>
+                  <div class="meta-item"><div class="meta-label">Duration</div><div class="meta-value">48h</div></div>
+                </div>
+              </div>
+              <div class="profit-box">
+                <div>
+                  <div class="small">Profit</div>
+                  <div class="rate">5%</div>
+                </div>
+                <button class="invest-now purple-btn" type="button">Invest Now</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="plan-card">
+            <div class="plan-main">
+              <div class="plan-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2">
+                  <path d="M12 3v18"></path>
+                  <path d="M7 8c0-2 2.2-4 5-4s5 2 5 4-2 4-5 4-5 2-5 4 2.2 4 5 4 5-2 5-4"></path>
+                </svg>
+                <div class="name">Pro</div>
+              </div>
+              <div class="plan-copy">
+                <div class="plan-title-row">
+                  <div class="plan-title">Pro Plan</div>
+                </div>
+                <p class="plan-desc">Built for larger deposits and steady returns.</p>
+                <div class="plan-meta">
+                  <div class="meta-item"><div class="meta-label">Min</div><div id="planMin3" class="meta-value">₦ 200,000.00</div></div>
+                  <div class="meta-item"><div class="meta-label">Max</div><div id="planMax3" class="meta-value">₦ 499,999.00</div></div>
+                  <div class="meta-item"><div class="meta-label">Daily</div><div class="meta-value">7%</div></div>
+                  <div class="meta-item"><div class="meta-label">Duration</div><div class="meta-value">72h</div></div>
+                </div>
+              </div>
+              <div class="profit-box">
+                <div>
+                  <div class="small">Profit</div>
+                  <div class="rate">7%</div>
+                </div>
+                <button class="invest-now amber-btn" type="button">Invest Now</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="plan-card">
+            <div class="plan-main">
+              <div class="plan-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+                  <path d="M12 3v18"></path>
+                  <path d="M7 8c0-2 2.2-4 5-4s5 2 5 4-2 4-5 4-5 2-5 4 2.2 4 5 4 5-2 5-4"></path>
+                </svg>
+                <div class="name">Elite</div>
+              </div>
+              <div class="plan-copy">
+                <div class="plan-title-row">
+                  <div class="plan-title">Elite Plan</div>
+                </div>
+                <p class="plan-desc">Top-tier capital deployment package.</p>
+                <div class="plan-meta">
+                  <div class="meta-item"><div class="meta-label">Min</div><div id="planMin4" class="meta-value">₦ 500,000.00</div></div>
+                  <div class="meta-item"><div class="meta-label">Max</div><div class="meta-value">Unlimited</div></div>
+                  <div class="meta-item"><div class="meta-label">Daily</div><div class="meta-value">10%</div></div>
+                  <div class="meta-item"><div class="meta-label">Duration</div><div class="meta-value">96h</div></div>
+                </div>
+              </div>
+              <div class="profit-box">
+                <div>
+                  <div class="small">Profit</div>
+                  <div class="rate">10%</div>
+                </div>
+                <button class="invest-now blue-btn" type="button">Invest Now</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="myInvestmentsView" class="panel hidden" style="margin:16px 16px 0;padding:16px;">
+          <div class="section-title" style="margin-bottom:12px;">My Investments</div>
+          <div class="notice-text">Your active investments will appear here.</div>
+          <div style="margin-top:12px;">
+            <button class="btn btn-primary my-investments-btn" type="button">Refresh</button>
+          </div>
+        </div>
+
+        <div id="investHistoryView" class="panel hidden" style="margin:16px 16px 0;padding:16px;">
+          <div class="section-title" style="margin-bottom:12px;">Investment History</div>
+          <div class="notice-text">Your investment history will appear here.</div>
+          <div style="margin-top:12px;">
+            <button class="btn btn-primary investment-history-btn" type="button">Refresh</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WITHDRAW -->
+    <section id="withdrawView" class="view">
+      <div class="section">
+        <div class="withdraw-hero panel">
+          <div class="withdraw-hero-grid">
+            <div class="withdraw-copy">
+              <div class="withdraw-label">
+                <span>Withdrawable Balance</span>
+                <svg class="withdraw-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </div>
+              <div id="withdrawBalance" class="withdraw-balance">₦ 0.00</div>
+              <div id="withdrawFx" class="withdraw-fx">≈ $ 0.00</div>
+
+              <div class="withdrawable-block">
+                <div class="withdrawable-label">
+                  <span>Withdrawable</span>
+                  <svg class="info-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 16v-4"></path>
+                    <path d="M12 8h.01"></path>
+                  </svg>
+                </div>
+                <div id="withdrawableAmount" class="withdrawable-value">₦ 0.00</div>
+              </div>
+            </div>
+
+            <div class="withdraw-art">
+              <svg viewBox="0 0 220 180" fill="none">
+                <rect x="30" y="28" width="160" height="110" rx="20" fill="rgba(255,255,255,.04)" />
+                <path d="M58 66h104M58 92h54M58 118h84" stroke="#b56cff" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="162" cy="92" r="16" fill="rgba(168,85,247,.14)" stroke="#a855f7" stroke-width="2"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title" style="margin-bottom:14px;">Withdrawal Method</div>
+        <div class="withdraw-method-grid">
+          <div class="method-card active" data-method="bank">
+            <div class="method-check">✓</div>
+            <div class="method-icon method-purple">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11"/></svg>
+            </div>
+            <div class="method-name">Bank</div>
+            <div class="method-time">Instant</div>
+          </div>
+          <div class="method-card" data-method="usdt">
+            <div class="method-check">✓</div>
+            <div class="method-icon method-green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff"><circle cx="12" cy="12" r="10"></circle><path d="M12 7v10"></path></svg>
+            </div>
+            <div class="method-name">USDT</div>
+            <div class="method-time">5 - 15 min</div>
+          </div>
+          <div class="method-card" data-method="opay">
+            <div class="method-check">✓</div>
+            <div class="method-icon method-amber">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff"><rect x="2" y="4" width="20" height="16" rx="3"></rect><path d="M22 8h-6a2 2 0 0 0 0 4h6"></path></svg>
+            </div>
+            <div class="method-name">Opay</div>
+            <div class="method-time">Instant</div>
+          </div>
+          <div class="method-card" data-method="wallet">
+            <div class="method-check">✓</div>
+            <div class="method-icon method-blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff"><path d="M7 7h14"></path><path d="m18 4 3 3-3 3"></path><path d="M17 17H3"></path><path d="m6 14-3 3 3 3"></path></svg>
+            </div>
+            <div class="method-name">Wallet</div>
+            <div class="method-time">Instant</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section panel withdraw-form">
+        <div class="section-title withdraw-section-title">Withdraw Details</div>
+        <div id="withdrawDetailsForm"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-title" style="margin-bottom:14px;">Recent Withdrawals</div>
+        <div id="recentWithdrawals" class="transactions panel"></div>
+      </div>
+    </section>
+
+    <!-- WALLET -->
+    <section id="walletView" class="view">
+      <div class="section">
+        <div class="wallet-hero panel">
+          <div class="wallet-hero-grid">
+            <div>
+              <div class="wallet-label">
+                <span>Total Balance</span>
+                <svg class="wallet-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </div>
+              <div id="walletTotalBalance" class="wallet-balance">₦ 0.00</div>
+              <div id="walletTotalFx" class="wallet-fx">≈ $ 0.00</div>
+
+              <div class="wallet-stats">
+                <div class="wallet-stat">
+                  <div class="wallet-stat-label">Available</div>
+                  <div id="availableBalance" class="wallet-stat-value wallet-green">₦ 0.00</div>
+                </div>
+                <div class="wallet-stat wallet-stat-split">
+                  <div class="wallet-stat-label">Locked</div>
+                  <div id="lockedBalance" class="wallet-stat-value wallet-purple">₦ 0.00</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="wallet-art-container">
+              <svg viewBox="0 0 220 180" fill="none">
+                <rect x="28" y="30" width="164" height="108" rx="20" fill="rgba(255,255,255,.04)" />
+                <circle cx="150" cy="84" r="16" fill="rgba(168,85,247,.14)" stroke="#a855f7" stroke-width="2"/>
+                <path d="M56 66h94M56 92h46M56 118h72" stroke="#c084fc" stroke-width="4" stroke-linecap="round"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="wallet-actions">
+          <div class="wallet-action">
+            <div class="wallet-action-ico green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3v18"></path><path d="M7 8c0-2.2 2.2-4 5-4s5 1.8 5 4-2.2 4-5 4-5 1.8-5 4 2.2 4 5 4 5-1.8 5-4"></path></svg>
+            </div>
+            <div class="wallet-action-title">Deposit</div>
+            <div class="wallet-action-sub">Add funds</div>
+          </div>
+
+          <div class="wallet-action">
+            <div class="wallet-action-ico purple">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 21V3"></path><path d="m7 14 5 5 5-5"></path></svg>
+            </div>
+            <div class="wallet-action-title">Withdraw</div>
+            <div class="wallet-action-sub">Cash out</div>
+          </div>
+
+          <div class="wallet-action">
+            <div class="wallet-action-ico blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M7 7h14"></path><path d="m18 4 3 3-3 3"></path><path d="M17 17H3"></path><path d="m6 14-3 3 3 3"></path></svg>
+            </div>
+            <div class="wallet-action-title">Transfer</div>
+            <div class="wallet-action-sub">Send funds</div>
+          </div>
+
+          <div class="wallet-action">
+            <div class="wallet-action-ico amber">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="M3 9h18"></path></svg>
+            </div>
+            <div class="wallet-action-title">History</div>
+            <div class="wallet-action-sub">Transactions</div>
+          </div>
+
+          <div class="wallet-action">
+            <div class="wallet-action-ico cobalt">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="5" width="20" height="14" rx="3"></rect><path d="M2 9h20"></path></svg>
+            </div>
+            <div class="wallet-action-title">Cards</div>
+            <div class="wallet-action-sub">Management</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Wallet Transactions</div>
+          <div class="chip" data-nav="home">Back Home</div>
+        </div>
+        <div id="walletRecentTx" class="wallet-transactions panel"></div>
+      </div>
+
+      <div class="section">
+        <div class="wallet-head">
+          <div class="section-title">Manage Accounts</div>
+          <div class="notice-text" style="margin-top:6px;">Linked accounts and payment methods.</div>
+        </div>
+
+        <div class="panel wallet-card-list">
+          <div class="wallet-account">
+            <div class="wallet-account-top-row">
+              <div class="wallet-account-left">
+                <div class="wallet-coin purple">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#fff"><path d="M3 21h18M3 10h18M5 6l7-3 7 3"/></svg>
+                </div>
+                <div class="wallet-account-info">
+                  <div class="wallet-account-top">
+                    <div class="wallet-account-name">Main Wallet</div>
+                    <span class="primary-tag">Primary</span>
+                  </div>
+                  <div id="nairaWallet" class="wallet-account-value">₦ 0.00</div>
+                  <div class="wallet-account-sub">NGN account</div>
+                </div>
+              </div>
+            </div>
+            <div class="wallet-account-actions">
+              <button class="small-action deposit-purple" type="button" data-nav="wallet">Deposit</button>
+              <button class="small-action deposit-green" type="button" data-nav="withdraw">Withdraw</button>
+              <button class="small-action deposit-blue" type="button" data-nav="wallet">History</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMMUNITY -->
+    <section id="communityView" class="view">
+      <div class="section">
+        <div class="panel community-box">
+          <div class="section-title" style="margin-bottom:10px;">Community</div>
+          <div class="notice-text">Type a message below. Sending opens the community modal.</div>
+
+          <div class="community-feed panel" style="margin-top:14px;padding:14px;">
+            <div style="padding:20px;text-align:center;color:#9ca3af;">No messages yet</div>
+          </div>
+
+          <div class="community-input-bar">
+            <input
+              id="communityInput"
+              class="community-input-placeholder"
+              type="text"
+              placeholder="Write a message..."
+              autocomplete="off"
+            />
+            <button class="community-emoji-btn" type="button" aria-label="Emoji">😊</button>
+            <button class="community-send-btn" type="button" aria-label="Send message">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 2 11 13"></path>
+                <path d="M22 2 15 22 11 13 2 9z"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOME NAV / MENU AREA -->
+    <div class="section">
+      <div class="secure-banner panel">
+        <div class="secure-left">
+          <div class="home-wallet-placeholder" style="width:56px;height:56px;border-radius:16px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M4 7h16v12H4z"></path>
+              <path d="M4 11h16"></path>
+              <circle cx="17" cy="13.5" r="1.1"></circle>
+            </svg>
+          </div>
+          <div>
+            <div style="font-size:16px;font-weight:700;">Secure & Verified</div>
+            <div class="notice-text">Your dashboard is protected with modern encryption.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-view="home" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 10v10h14V10"></path></svg>
+      <span>Home</span>
+    </button>
+    <button class="nav-item" data-view="invest" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 17l6-6 4 4 8-8"></path><path d="M14 7h7v7"></path></svg>
+      <span>Invest</span>
+    </button>
+    <button class="nav-item" data-view="withdraw" type="button" id="withdrawNavBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 21V3"></path><path d="m7 14 5 5 5-5"></path></svg>
+      <span>Withdraw</span>
+    </button>
+    <button class="nav-item" data-view="wallet" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 7h18v10H3z"></path><path d="M16 12h4"></path></svg>
+      <span>Wallet</span>
+    </button>
+    <button class="nav-item" data-view="community" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path></svg>
+      <span>Community</span>
+    </button>
+  </nav>
+
+  <script src="community.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
