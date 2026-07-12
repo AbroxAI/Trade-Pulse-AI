@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Trade Pulse AI – Dashboard</title>
+    <style>
+        /* ===== FULL CSS (all fixes included) ===== */
+        :root {
+            --bg: #040713;
+            --panel: #0a1020;
+            --panel2: #0c1428;
+            --line: rgba(255, 255, 255, .06);
+            --text: #f5f7ff;
+            --muted: #9aa3b2;
+            --purple: #a855f7;
+            --purple2: #7c3aed;
+            --green: #22c55e;
+            --blue: #3b82f6;
+            --amber: #f59e0b;
+            --pink: #ec4899;
+            --red: #ef4444;
+            --shadow-sm: 0 4px 12px rgba(0,0,0,.25);
+            --shadow-md: 0 8px 24px rgba(0,0,0,.35);
+            --safe: env(safe-area-inset-bottom, 0px);
+            --navh: 88px;
+        }
+        * { box-sizing: border-box; }
+        html, body {
+            height: 100%;
+            min-height: 100%;
+            background: #040713;
+            overflow-x: hidden;
+            overflow-y: auto;
+            overscroll-behavior-y: none;
+        }
+        body {
+            margin: 0;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            color: var(--text);
+            min-height: 100dvh;
+            background: radial-gradient(circle at 50% 0%, rgba(168,85,247,.08), transparent 30%),
+                        radial-gradient(circle at 75% 18%, rgba(59,130,246,.06), transparent 22%),
+                        linear-gradient(180deg, #02040b 0%, #040713 100%);
+            background-attachment: fixed;
+            -webkit-font-smoothing: antialiased;
+        }
+        .view.active,
+        .section,
+        .panel { overflow: visible; }
+        .login-container {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: #040713; overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch; z-index: 100;
+            display: flex; justify-content: center; align-items: flex-start;
+            padding: 20px; overflow-y: auto;
+        }
+        .login-card {
+            width: 100%; max-width: 400px; margin: auto; padding: 40px 24px;
+            border-radius: 24px; background: linear-gradient(145deg, rgba(10,15,28,.96), rgba(10,18,32,.96));
+            border: 1px solid var(--line); box-shadow: var(--shadow-md); text-align: center;
+        }
+        .login-logo { width: auto; max-width: 180px; height: auto; margin: 0 auto 24px; display: block; object-fit: contain; background: none; padding: 0; border-radius: 0; }
+        .login-title { font-size: 24px; font-weight: 700; letter-spacing: -.03em; margin-bottom: 8px; }
+        .login-subtitle { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+        .toggle-row { display: flex; margin-bottom: 24px; background: rgba(255,255,255,.04); border-radius: 14px; padding: 4px; }
+        .toggle-btn { flex: 1; padding: 12px 0; border: 0; border-radius: 11px; background: transparent; color: var(--muted); font-size: 15px; font-weight: 600; cursor: pointer; transition: all .2s ease; white-space: nowrap; }
+        .toggle-btn.active { background: var(--purple); color: #fff; box-shadow: 0 4px 12px rgba(168,85,247,.25); }
+        .form-group { margin-bottom: 16px; text-align: left; }
+        .form-group label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+        .form-group input { width: 100%; height: 48px; border-radius: 12px; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.04); color: #fff; padding: 0 14px; font-size: 15px; outline: none; transition: border .2s; }
+        .form-group input:focus { border-color: var(--purple); }
+        .form-hint { font-size: 11px; color: #6b7280; margin-top: 4px; display: block; }
+        .password-wrap { position: relative; }
+        .password-wrap input { padding-right: 44px; }
+        .eye-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 18px; padding: 4px; line-height: 1; }
+        .invite-note { font-size: 12px; color: var(--muted); margin-bottom: 20px; text-align: center; }
+        .btn { width: 100%; height: 50px; border: 0; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; background: linear-gradient(90deg, #6d28d9, #8b5cf6); color: #fff; box-shadow: 0 6px 18px rgba(124,58,237,.2); transition: opacity .2s; }
+        .btn:hover { opacity: .95; }
+        .btn-outline { background: transparent; color: #e9d5ff; border: 1px solid rgba(196,181,253,.25); box-shadow: inset 0 0 0 1px rgba(168,85,247,.02); }
+        .error-msg { color: var(--red); font-size: 13px; margin-top: 10px; text-align: center; min-height: 20px; }
+        .success-msg { color: var(--green); font-size: 13px; margin-top: 10px; text-align: center; }
+        .app { display: none; width: 100%; max-width: 430px; margin: 0 auto; min-height: 100vh; padding-bottom: calc(var(--navh) + 16px + var(--safe)); position: relative; }
+        .topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 16px 0; gap: 10px; }
+        .icon-btn { border: 0; background: transparent; color: #fff; padding: 0; display: inline-flex; align-items: center; justify-content: center; position: relative; flex: 0 0 auto; cursor: pointer; }
+        .icon-btn svg { display: block; width: 22px; height: 22px; }
+        .title { flex: 1; min-width: 0; font-size: 22px; font-weight: 700; letter-spacing: -.03em; padding-left: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .badge { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; display: flex; align-items: center; justify-content: center; line-height: 1; font-size: 11px; right: -4px; top: -4px; position: absolute; background: var(--red); color: #fff; font-weight: 700; box-shadow: 0 4px 10px rgba(239,68,68,.15); z-index: 1; }
+        .drawer-avatar .avatar-initial, .community-avatar .avatar-initial { position: relative; z-index: 1; pointer-events: none; }
+        .amount-presets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        .preset {
+            flex: 1 0 auto;
+            min-width: 60px;
+            height: 40px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,.07);
+            background: #0b1020;
+            color: #e5e7eb;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            padding: 0 6px;
+        }
+        .preset-max { color: #b56cff; }
+        .copy-uid-btn { background: rgba(255,255,255,.1) !important; border: 1px solid rgba(255,255,255,.2) !important; padding: 6px 10px !important; border-radius: 20px !important; font-size: 12px !important; color: #cbd5e1 !important; display: inline-flex !important; align-items: center !important; gap: 6px !important; cursor: pointer !important; transition: all 0.2s !important; }
+        .copy-uid-btn:hover { background: rgba(168,85,247,.2) !important; color: #c084fc !important; border-color: rgba(168,85,247,.3) !important; }
+        .copy-uid-btn svg { width: 16px; height: 16px; }
+        .view { display: none; }
+        .view.active { display: block; }
+        .section { padding: 0 16px; margin-top: 16px; }
+        .panel { background: linear-gradient(180deg, rgba(10,15,28,.96), rgba(10,18,32,.96)); border: 1px solid var(--line); border-radius: 20px; box-shadow: var(--shadow-sm); }
+        .section-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: nowrap; margin-bottom: 10px; }
+        .section-title { font-size: 17px; font-weight: 700; letter-spacing: -.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .chip { height: 28px; border-radius: 999px; border: 1px solid rgba(255,255,255,.08); background: #0b1020; color: #e5e7eb; padding: 0 10px; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; cursor: pointer; flex-shrink: 0; white-space: nowrap; }
+        .chip svg { width: 14px; height: 14px; }
+        .balance-card { position: relative; overflow: hidden; border-radius: 22px; padding: 18px 16px 16px; background: linear-gradient(145deg, rgba(7,10,22,.97) 0%, rgba(11,16,32,.97) 55%, rgba(24,6,38,.97) 100%); border: 1px solid rgba(168,85,247,.08); box-shadow: 0 0 0 1px rgba(168,85,247,.04), var(--shadow-sm); min-height: 200px; }
+        .balance-grid { display: grid; grid-template-columns: minmax(0,1.15fr) minmax(0,.85fr); gap: 4px; align-items: center; }
+        .balance-label { display: flex; align-items: center; gap: 8px; font-size: 15px; color: #d6d9e4; margin-bottom: 10px; white-space: nowrap; }
+        .balance-label span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .balance-label .eye { width: 18px; height: 18px; opacity: .85; flex: 0 0 auto; cursor: pointer; }
+        .wallet-emoji { font-size: 20px; line-height: 1; margin-left: 6px; }
+        .amount { font-size: clamp(28px,7vw,33px); line-height: 1.05; font-weight: 700; letter-spacing: -.05em; margin: 0 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .fx { font-size: 14px; color: var(--muted); margin-bottom: 16px; white-space: nowrap; }
+        .cta-row { display: flex; gap: 10px; flex-wrap: nowrap; }
+        .btn { height: 42px; border-radius: 999px; border: 0; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; font-size: 14px; font-weight: 600; cursor: pointer; transition: .15s ease; white-space: nowrap; }
+        .btn:active { transform: scale(.98); }
+        .btn-primary { color: #fff; background: linear-gradient(90deg, #6d28d9, #8b5cf6); box-shadow: 0 6px 18px rgba(124,58,237,.2); }
+        .btn-outline { background: transparent; color: #e9d5ff; border: 1px solid rgba(196,181,253,.25); box-shadow: inset 0 0 0 1px rgba(168,85,247,.02); }
+        .btn svg { width: 18px; height: 18px; }
+        .btn-disabled { opacity: 0.5; pointer-events: none; }
+        .home-wallet-placeholder { width: 100%; max-width: 160px; height: 160px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,.02); border-radius: 22px; color: rgba(255,255,255,.2); }
+        .home-wallet-placeholder svg { width: 110px; height: 110px; }
+        .quick-actions { display: grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap: 8px; }
+        .action { height: 92px; border-radius: 18px; border: 1px solid rgba(255,255,255,.05); background: rgba(11,16,32,.88); box-shadow: 0 6px 18px rgba(0,0,0,.25); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 0 4px; cursor: pointer; white-space: nowrap; }
+        .action .circle { width: 42px; height: 42px; border-radius: 999px; display: grid; place-items: center; box-shadow: 0 0 12px rgba(168,85,247,.1); flex: 0 0 auto; }
+        .action .circle svg { width: 18px; height: 18px; stroke-width: 2; }
+        .action .label { font-size: 11px; font-weight: 500; color: #e5e7eb; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+        .overview-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 7px; }
+        .stat { border-radius: 18px; padding: 12px 10px 11px; min-height: 120px; background: rgba(11,16,32,.92); overflow: hidden; cursor: pointer; }
+        .stat .ico { width: 36px; height: 36px; border-radius: 999px; display: grid; place-items: center; margin-bottom: 12px; }
+        .stat .ico svg { width: 17px; height: 17px; stroke-width: 2; }
+        .stat .title { font-size: 10px; line-height: 1.3; color: #aeb6c5; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .stat .value { font-size: 14px; font-weight: 700; letter-spacing: -.03em; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .stat .sub { font-size: 10px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .chart-card { border-radius: 22px; padding: 14px 14px 10px; overflow: hidden; }
+        .chart-top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; margin-bottom: 8px; }
+        .chart-title { font-size: 17px; font-weight: 700; letter-spacing: -.02em; margin-bottom: 8px; white-space: nowrap; }
+        .profit { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: var(--green); white-space: nowrap; }
+        .profit .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px rgba(34,197,94,.35); flex: 0 0 auto; }
+        .profit .muted { color: var(--muted); font-size: 13px; font-weight: 500; }
+        .chart-wrap { position: relative; height: 250px; margin-top: 4px; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
+        .axis-text, .ytext { fill: #e5e7eb; font-size: 10px; }
+        .transactions { border-radius: 20px; overflow: hidden; }
+        .tx-row { display: flex; align-items: center; gap: 12px; padding: 14px 14px; border-bottom: 1px solid rgba(255,255,255,.05); cursor: pointer; }
+        .tx-row:last-child { border-bottom: 0; }
+        .tx-ico { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; flex: 0 0 auto; }
+        .tx-ico svg { width: 24px; height: 24px; stroke-width: 2; }
+        .tx-main { min-width: 0; flex: 1; }
+        .tx-title { font-size: 15px; font-weight: 700; color: #f8fafc; margin-bottom: 4px; }
+        .tx-sub { font-size: 12px; color: #9aa3b2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .tx-right { text-align: right; flex: 0 0 auto; min-width: 90px; }
+        .tx-amt { font-size: 15px; font-weight: 700; margin-bottom: 4px; white-space: nowrap; }
+        .status { display: inline-flex; align-items: center; justify-content: center; min-width: 70px; height: 22px; border-radius: 999px; background: rgba(34,197,94,.09); color: #34d399; font-size: 11px; font-weight: 700; padding: 0 10px; white-space: nowrap; }
+        .overview-card { padding: 14px; position: relative; overflow: hidden; background: linear-gradient(145deg, rgba(16,10,37,.92), rgba(11,16,32,.96)); border: 1px solid rgba(168,85,247,.08); box-shadow: 0 0 0 1px rgba(168,85,247,.04), var(--shadow-sm); }
+        .overview-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+        .overview-head h2 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -.03em; white-space: normal; word-break: break-word; }
+        .hide-balance { display: inline-flex; align-items: center; gap: 6px; color: #d8dbe8; font-size: 13px; white-space: nowrap; cursor: pointer; user-select: none; }
+        .hide-balance svg { width: 16px; height: 16px; stroke-width: 2; }
+        .stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; }
+        .stat2 { min-width: 0; border: 1px solid rgba(255,255,255,.06); border-radius: 14px; background: rgba(11,16,32,.84); padding: 12px 12px 11px; overflow: hidden; }
+        .stat2 .label { font-size: 12px; line-height: 1.35; color: #d7dae6; margin-bottom: 8px; white-space: normal; word-break: break-word; }
+        .stat2 .value { font-size: 18px; font-weight: 800; letter-spacing: -.03em; line-height: 1.1; margin-bottom: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .stat2 .ico { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; background: rgba(255,255,255,.04); }
+        .stat2 .ico svg { width: 16px; height: 16px; stroke-width: 2; }
+        .tabs { display: flex; align-items: center; gap: 10px; padding: 0 2px; margin: 16px 6px 0; overflow-x: auto; scrollbar-width: none; }
+        .tabs::-webkit-scrollbar { display: none; }
+        .tab { flex: 1 0 auto; padding: 13px 16px 12px; color: #c6cad6; font-size: 14px; font-weight: 500; text-align: center; white-space: nowrap; cursor: pointer; position: relative; }
+        .tab.active { color: #b56cff; font-weight: 600; }
+        .tab.active:after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; border-radius: 999px; background: linear-gradient(90deg, transparent, #a855f7, transparent); box-shadow: 0 0 8px rgba(168,85,247,.25); }
+        .tab-line { height: 1px; background: rgba(255,255,255,.07); margin-top: -1px; }
+        .plans-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 16px 10px; }
+        .plans-head h3 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -.02em; }
+        .compare-btn { border: 1px solid rgba(122,140,255,.18); background: linear-gradient(180deg, rgba(48,58,100,.35), rgba(22,28,51,.65)); color: #b7c0ff; height: 34px; padding: 0 13px; border-radius: 999px; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; flex-shrink: 0; white-space: nowrap; cursor: pointer; }
+        .compare-btn svg { width: 16px; height: 16px; stroke-width: 2; }
+        .plan-card { margin: 0 16px 10px; padding: 14px; border-radius: 18px; border: 1px solid rgba(255,255,255,.08); background: linear-gradient(180deg, rgba(8,12,24,.96), rgba(9,14,28,.94)); box-shadow: var(--shadow-sm); }
+        .plan-main { display: grid; grid-template-columns: 90px minmax(0,1fr) 110px; gap: 12px; align-items: stretch; }
+        .plan-badge { border-radius: 14px; border: 1px solid rgba(255,255,255,.06); background: rgba(255,255,255,.03); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 8px; gap: 6px; text-align: center; overflow: hidden; }
+        .plan-badge .name { font-size: 12px; line-height: 1.2; white-space: normal; word-break: break-word; max-width: 100%; }
+        .plan-badge svg { width: 28px; height: 28px; }
+        .plan-copy { min-width: 0; padding-top: 2px; }
+        .plan-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; margin-bottom: 8px; }
+        .plan-title { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .popular { font-size: 11px; font-weight: 500; color: #d9c0ff; background: rgba(168,85,247,.12); border: 1px solid rgba(168,85,247,.16); padding: 4px 8px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; }
+        .plan-desc { margin: 0; color: #c4cad8; font-size: 13px; line-height: 1.5; white-space: normal; }
+        .profit-box { border-left: 1px solid rgba(255,255,255,.06); padding-left: 14px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; gap: 10px; }
+        .profit-box .small { font-size: 12px; white-space: nowrap; }
+        .profit-box .rate { font-size: 32px; font-weight: 800; letter-spacing: -.05em; white-space: nowrap; }
+        .invest-now { margin-top: auto; width: 100%; height: 42px; border: 0; border-radius: 10px; color: #fff; font-size: 14px; font-weight: 700; white-space: nowrap; cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,.2); }
+        .green-btn { background: linear-gradient(180deg, #1f8f49, #106b33); }
+        .purple-btn { background: linear-gradient(180deg, #7a33db, #5420a7); }
+        .amber-btn { background: linear-gradient(180deg, #d98b13, #a86200); }
+        .blue-btn { background: linear-gradient(180deg, #2877d7, #1451a6); }
+        .plan-meta { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.06); }
+        .meta-item { min-width: 0; padding-right: 8px; border-right: 1px solid rgba(255,255,255,.05); }
+        .meta-item:last-child { border-right: 0; padding-right: 0; }
+        .meta-label { color: #98a2b7; font-size: 11px; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .meta-value { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .feature-row { margin: 4px 16px 0; padding: 14px 12px; border-radius: 18px; border: 1px solid rgba(255,255,255,.06); background: rgba(9,14,28,.90); display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; }
+        .feature { display: flex; align-items: flex-start; gap: 10px; min-width: 0; }
+        .feature .icon { width: 28px; height: 28px; border-radius: 999px; display: grid; place-items: center; flex: 0 0 auto; border: 1px solid rgba(255,255,255,.06); background: rgba(255,255,255,.03); }
+        .feature .icon svg { width: 14px; height: 14px; stroke-width: 2; }
+        .feature .txt b { display: block; font-size: 11px; line-height: 1.3; margin-bottom: 2px; white-space: nowrap; }
+        .feature .txt span { font-size: 10px; color: #9aa3b2; white-space: nowrap; }
+        .promo { margin: 14px 16px 0; padding: 16px; border-radius: 18px; position: relative; overflow: hidden; border: 1px solid rgba(168,85,247,.08); background: linear-gradient(135deg, rgba(48,14,78,.96), rgba(25,11,58,.95)); box-shadow: 0 0 0 1px rgba(168,85,247,.05), var(--shadow-sm); }
+        .promo:after { content: ""; position: absolute; right: 8px; bottom: -6px; width: 120px; height: 120px; background: radial-gradient(circle at 50% 50%, rgba(255,255,255,.06), transparent 55%); opacity: .6; pointer-events: none; }
+        .promo-grid { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 16px; align-items: center; position: relative; z-index: 1; }
+        .promo h4 { margin: 0 0 8px; font-size: 18px; font-weight: 700; letter-spacing: -.02em; }
+        .promo p { margin: 0; font-size: 13px; color: #d8d7ef; max-width: 240px; }
+        .upgrade { border: 1px solid rgba(189,160,255,.24); background: rgba(13,11,40,.3); color: #eee7ff; border-radius: 12px; padding: 12px 14px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; cursor: pointer; }
+        .upgrade svg { width: 16px; height: 16px; stroke-width: 2; }
+        .withdraw-hero { padding: 16px; overflow: hidden; background: linear-gradient(145deg, rgba(7,10,22,.98), rgba(10,15,30,.98)); border: 1px solid rgba(168,85,247,.08); }
+        .withdraw-hero-grid { display: grid; grid-template-columns: minmax(0,1.12fr) minmax(0,.88fr); gap: 12px; align-items: center; }
+        .withdraw-copy { min-width: 0; }
+        .withdraw-label { display: flex; align-items: center; gap: 8px; font-size: 15px; color: #d6d9e4; margin-bottom: 12px; white-space: nowrap; }
+        .withdraw-eye { width: 18px; height: 18px; opacity: .85; flex: 0 0 auto; cursor: pointer; }
+        .withdraw-balance { font-size: clamp(30px,7vw,34px); font-weight: 700; line-height: 1.05; letter-spacing: -.05em; margin-bottom: 8px; white-space: nowrap; }
+        .withdraw-fx { font-size: 14px; color: var(--muted); }
+        .withdrawable-block { margin-top: 18px; }
+        .withdrawable-label { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #cdd3df; margin-bottom: 8px; white-space: nowrap; }
+        .info-ico { width: 16px; height: 16px; opacity: .8; flex: 0 0 auto; }
+        .withdrawable-value { font-size: 18px; font-weight: 700; color: #b56cff; }
+        .withdraw-art { display: flex; align-items: center; justify-content: center; }
+        .withdraw-art svg { width: 100%; max-width: 180px; height: auto; }
+        .withdraw-section-title { font-size: 17px; font-weight: 600; margin-bottom: 14px; }
+        .withdraw-method-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; transform: translateZ(0); will-change: transform; }
+        .method-card { position: relative; border-radius: 18px; border: 1px solid rgba(255,255,255,.07); background: #0b1020; padding: 14px 10px 13px; text-align: center; color: #fff; cursor: pointer; transform: translateZ(0); backface-visibility: hidden; -webkit-backface-visibility: hidden; will-change: transform, box-shadow, border-color; transition: transform .14s ease, border-color .14s ease, box-shadow .14s ease, background-color .14s ease; }
+        .method-card.active { border-color: #9333ea; box-shadow: 0 0 0 1px rgba(147,51,234,.1); }
+        .method-card:active { transform: scale(.985) translateZ(0); }
+        .method-icon { width: 48px; height: 48px; border-radius: 50%; margin: 0 auto 10px; display: grid; place-items: center; }
+        .method-icon svg { width: 28px; height: 28px; stroke-width: 2; }
+        .method-purple { background: linear-gradient(135deg, #6d28d9, #a855f7); }
+        .method-green { background: linear-gradient(135deg, #15803d, #22c55e); }
+        .method-amber { background: linear-gradient(135deg, #b45309, #f59e0b); }
+        .method-blue { background: linear-gradient(135deg, #1d4ed8, #3b82f6); }
+        .method-name { font-size: 14px; font-weight: 600; }
+        .method-time { font-size: 12px; color: #9ca3af; margin-top: 6px; }
+        .method-check { position: absolute; top: 10px; right: 10px; width: 20px; height: 20px; border-radius: 50%; background: #9333ea; color: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 700; }
+        .withdraw-form { padding: 16px; min-height: 420px; overflow: hidden; contain: layout paint; transition: opacity .12s ease; will-change: opacity; }
+        .withdraw-form.switching { opacity: .35; }
+        .field-label { font-size: 14px; color: #cfd3dd; margin-bottom: 10px; }
+        .amount-input { height: 56px; border-radius: 16px; border: 1px solid rgba(255,255,255,.08); background: #0b1020; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; margin-bottom: 12px; }
+        .placeholder { color: #707887; font-size: 16px; }
+        .currency { font-weight: 600; color: #c7ccd5; }
+        .amount-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+        .preset { flex: 1 0 auto; min-width: 60px; height: 40px; border-radius: 12px; border: 1px solid rgba(255,255,255,.07); background: #0b1020; color: #e5e7eb; font-size: 11px; font-weight: 500; cursor: pointer; white-space: nowrap; padding: 0 6px; }
+        .preset-max { color: #b56cff; }
+        .fee-row, .receive-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .fee-row { color: #d4d8e1; margin-bottom: 12px; font-size: 14px; }
+        .receive-row { font-size: 16px; font-weight: 700; color: #22c55e; margin-bottom: 0; }
+        .receive-row span:first-child { font-size: 15px; font-weight: 400; color: #d4d8e1; }
+        .withdraw-btn { width: 100%; height: 52px; border: 0; border-radius: 14px; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; background: linear-gradient(180deg, #7c3aed, #5b21b6); box-shadow: 0 6px 18px rgba(124,58,237,.18); }
+        .notice-box { margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.06); }
+        .notice-title { color: #b56cff; font-weight: 600; margin-bottom: 8px; }
+        .notice-text { color: #9ca3af; font-size: 14px; line-height: 1.6; }
+        .field-error { color: #f87171; font-size: 12px; margin-top: 8px; margin-bottom: 8px; display: none; }
+        .wallet-hero { padding: 16px; overflow: hidden; background: linear-gradient(145deg, rgba(7,10,22,.98), rgba(10,15,30,.98)); border: 1px solid rgba(168,85,247,.08); }
+        .wallet-hero-grid { display: grid; grid-template-columns: minmax(0,1.15fr) minmax(0,.85fr); gap: 14px; align-items: center; }
+        .wallet-label { display: flex; align-items: center; gap: 8px; font-size: 15px; color: #d6d9e4; margin-bottom: 12px; white-space: nowrap; }
+        .wallet-eye { width: 18px; height: 18px; opacity: .85; flex: 0 0 auto; }
+        .wallet-balance { font-size: clamp(31px,7vw,35px); font-weight: 700; line-height: 1.05; letter-spacing: -.05em; margin-bottom: 8px; white-space: nowrap; }
+        .wallet-fx { font-size: 14px; color: var(--muted); }
+        .wallet-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .wallet-stat { min-width: 0; }
+        .wallet-stat-split { padding-left: 14px; border-left: 1px solid rgba(255,255,255,.07); }
+        .wallet-stat-label { display: flex; align-items: center; gap: 6px; font-size: 14px; color: #cdd3df; margin-bottom: 8px; white-space: nowrap; }
+        .wallet-stat-value { font-size: 18px; font-weight: 700; white-space: nowrap; }
+        .wallet-green { color: #22f06a; }
+        .wallet-purple { color: #b56cff; }
+        .wallet-art-container { display: flex; align-items: center; justify-content: center; }
+        .wallet-art-container svg { width: 100%; max-width: 195px; height: auto; }
+        .wallet-actions { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 10px; }
+        .wallet-action { border-radius: 16px; border: 1px solid rgba(255,255,255,.06); background: #0b1020; padding: 14px 6px 13px; text-align: center; cursor: pointer; color: #fff; min-width: 0; overflow: hidden; }
+        .wallet-action-ico { width: 40px; height: 40px; border-radius: 50%; margin: 0 auto 10px; display: grid; place-items: center; }
+        .wallet-action-ico svg { width: 20px; height: 20px; stroke-width: 2; color: #fff; }
+        .wallet-action-ico.green { background: rgba(34,197,94,.14); color: #22c55e; }
+        .wallet-action-ico.purple { background: rgba(168,85,247,.14); color: #b56cff; }
+        .wallet-action-ico.blue { background: rgba(59,130,246,.14); color: #60a5fa; }
+        .wallet-action-ico.amber { background: rgba(245,158,11,.14); color: #f59e0b; }
+        .wallet-action-ico.cobalt { background: rgba(96,165,250,.14); color: #60a5fa; }
+        .wallet-action-title { font-size: 13px; font-weight: 600; line-height: 1.2; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .wallet-action-sub { font-size: 11px; color: #9ca3af; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .wallet-head { margin-bottom: 12px; }
+        .wallet-manage { color: #b56cff; }
+        .wallet-card-list { padding: 2px 0; overflow: hidden; }
+        .wallet-account { display: flex; flex-direction: column; gap: 10px; padding: 16px 14px; border-bottom: 1px solid rgba(255,255,255,.05); }
+        .wallet-account:last-child { border-bottom: 0; }
+        .wallet-account-top-row { display: flex; align-items: center; gap: 12px; }
+        .wallet-account-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+        .wallet-coin { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; flex: 0 0 auto; }
+        .wallet-coin svg { width: 24px; height: 24px; stroke-width: 2; }
+        .wallet-coin.purple { background: linear-gradient(135deg, #5b21b6, #7c3aed); }
+        .wallet-coin.green { background: linear-gradient(135deg, #15803d, #22c55e); }
+        .wallet-coin.amber { background: linear-gradient(135deg, #a16207, #f59e0b); }
+        .wallet-account-info { min-width: 0; flex: 1; }
+        .wallet-account-top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+        .wallet-account-name { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+        .primary-tag { font-size: 10px; color: #cfa8ff; background: rgba(168,85,247,.12); border: 1px solid rgba(168,85,247,.14); padding: 2px 6px; border-radius: 999px; flex-shrink: 0; white-space: nowrap; }
+        .wallet-account-value { font-size: 15px; font-weight: 700; margin-bottom: 4px; white-space: nowrap; }
+        .wallet-account-sub { font-size: 12px; color: #9ca3af; white-space: nowrap; }
+        .row-chevron { width: 18px; height: 18px; color: #9097a7; flex-shrink: 0; }
+        .wallet-account-actions { display: flex; align-items: center; gap: 8px; padding-left: 52px; }
+        .small-action { height: 36px; border-radius: 10px; border: 1px solid rgba(255,255,255,.08); background: #0b1020; color: #e8ebf1; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; white-space: nowrap; cursor: pointer; }
+        .small-action svg { width: 14px; height: 14px; stroke-width: 2; }
+        .deposit-purple { color: #c792ff; background: rgba(168,85,247,.14); border-color: rgba(168,85,247,.15); }
+        .deposit-green { color: #22c55e; background: rgba(34,197,94,.12); border-color: rgba(34,197,94,.14); }
+        .deposit-amber { color: #f59e0b; background: rgba(245,158,11,.12); border-color: rgba(245,158,11,.14); }
+        .wallet-transactions { padding: 2px 0; }
+        .wallet-tx-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,.05); }
+        .wallet-tx-row:last-child { border-bottom: 0; }
+        .secure-banner { padding: 16px; background: linear-gradient(135deg, rgba(27,9,55,.95), rgba(10,15,30,.98)); border: 1px solid rgba(168,85,247,.08); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        .secure-left { display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1; }
+        .secure-ico { width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; background: rgba(168,85,247,.12); flex: 0 0 auto; }
+        .secure-ico svg { width: 28px; height: 28px; stroke-width: 2; color: #c084fc; }
+        .secure-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+        .secure-text { font-size: 13px; color: #c9ced8; line-height: 1.35; max-width: 190px; }
+        .secure-btn { height: 44px; border: 0; border-radius: 10px; padding: 0 16px; color: #fff; background: linear-gradient(180deg, #7c3aed, #5b21b6); display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; white-space: nowrap; cursor: pointer; box-shadow: 0 6px 18px rgba(124,58,237,.15); }
+        .secure-btn svg { width: 16px; height: 16px; stroke-width: 2; }
+        .community-hero, .community-pinned, .community-chat-card, .community-sidebar-card { background-color: #0b1020; }
+        .community-hero { border-radius: 24px; padding: 18px; background: linear-gradient(145deg, rgba(10,14,30,.98), rgba(18,10,40,.98)); border: 1px solid rgba(168,85,247,.08); box-shadow: 0 0 0 1px rgba(168,85,247,.04), var(--shadow-sm); overflow: hidden; }
+        .community-hero-top { display: flex; align-items: center; gap: 14px; }
+        .community-avatar { width: 76px; height: 76px; border-radius: 50%; background: rgba(168,85,247,.18); display: grid; place-items: center; flex: 0 0 auto; box-shadow: 0 0 20px rgba(168,85,247,.15); }
+        .community-avatar svg { width: 40px; height: 40px; stroke-width: 2; color: #c084fc; }
+        .community-hero-info { flex: 1; min-width: 0; }
+        .community-hero-title { font-size: 26px; font-weight: 700; letter-spacing: -.03em; display: flex; align-items: center; gap: 6px; }
+        .community-logo { width: 60px; max-width: 20vw; height: auto; border-radius: 16px; margin-right: 12px; flex-shrink: 0; }
+        .verified-check { width: 20px; height: 20px; border-radius: 50%; background: #8b5cf6; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .verified-check svg { width: 12px; height: 12px; stroke-width: 2; color: #fff; }
+        .community-members-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 13px; color: #c9ced8; }
+        .online-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px rgba(34,197,94,.4); flex: 0 0 auto; }
+        .online-text { color: #22c55e; font-weight: 600; }
+        .community-desc { font-size: 13px; color: #9aa3b2; line-height: 1.5; margin-top: 10px; }
+        .community-invite-btn { height: 46px; padding: 0 20px; border-radius: 14px; border: 0; background: linear-gradient(90deg, #6d28d9, #8b5cf6); color: #fff; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; white-space: nowrap; box-shadow: 0 6px 18px rgba(124,58,237,.15); margin-top: 14px; cursor: pointer; }
+        .community-invite-btn svg { width: 16px; height: 16px; stroke-width: 2; }
+        .community-quick-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; }
+        .community-quick-card { height: 100px; border-radius: 18px; border: 1px solid rgba(255,255,255,.05); background: rgba(11,16,32,.92); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 12px 6px; cursor: pointer; }
+        .community-quick-ico { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; }
+        .community-quick-ico svg { width: 20px; height: 20px; stroke-width: 2; color: #fff; }
+        .community-quick-ico.purple { background: linear-gradient(135deg, #6d28d9, #8b5cf6); }
+        .community-quick-ico.blue { background: linear-gradient(135deg, #1d4ed8, #3b82f6); }
+        .community-quick-ico.green { background: linear-gradient(135deg, #15803d, #22c55e); }
+        .community-quick-ico.amber { background: linear-gradient(135deg, #b45309, #f59e0b); }
+        .community-quick-label { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+        .community-quick-status { font-size: 11px; color: #9ca3af; }
+        .community-quick-status .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; display: inline-block; margin-right: 4px; box-shadow: 0 0 6px rgba(34,197,94,.35); }
+        .community-tabs { display: flex; gap: 8px; overflow-x: auto; padding: 0 2px; scrollbar-width: none; }
+        .community-tabs::-webkit-scrollbar { display: none; }
+        .community-tab { flex: 1 0 auto; padding: 12px 16px; font-size: 13px; font-weight: 500; color: #9ca3af; text-align: center; white-space: nowrap; cursor: pointer; }
+        .community-tab.active { color: #b56cff; font-weight: 600; border-bottom: 2px solid #a855f7; }
+        .community-pinned { padding: 14px; border-radius: 18px; background: #0a1020; border: 1px solid rgba(255,255,255,.05); display: flex; align-items: center; gap: 12px; }
+        .community-pin-ico { width: 36px; height: 36px; border-radius: 50%; background: rgba(168,85,247,.14); display: grid; place-items: center; flex: 0 0 auto; }
+        .community-pin-ico svg { width: 18px; height: 18px; stroke-width: 2; color: #b56cff; }
+        .community-pin-text { flex: 1; min-width: 0; }
+        .community-pin-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+        .community-pin-sub { font-size: 12px; color: #9ca3af; }
+        .community-pin-arrow { width: 18px; height: 18px; color: #6b7280; flex: 0 0 auto; }
+        .community-chat-layout { display: grid; grid-template-columns: minmax(0,1fr) 170px; gap: 10px; align-items: start; min-height: auto; }
+        .community-chat-col { display: flex; flex-direction: column; gap: 10px; max-height: none !important; overflow: visible !important; padding-bottom: calc(220px + env(safe-area-inset-bottom, 0px)); position: relative; z-index: 1; }
+        .community-sidebar-col { display: flex; flex-direction: column; gap: 10px; }
+        .community-chat-card { border-radius: 18px; border: 1px solid rgba(255,255,255,.05); background: linear-gradient(180deg, rgba(11,16,32,.98), rgba(7,10,20,.98)); padding: 14px; }
+        .chat-msg-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .chat-msg-avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(168,85,247,.18); display: grid; place-items: center; flex: 0 0 auto; font-weight: 700; font-size: 15px; }
+        .chat-msg-name { font-size: 14px; font-weight: 600; }
+        .chat-msg-badge { font-size: 10px; padding: 2px 6px; border-radius: 999px; font-weight: 600; white-space: nowrap; }
+        .badge-vip { background: rgba(168,85,247,.14); color: #c084fc; border: 1px solid rgba(168,85,247,.18); }
+        .badge-admin { background: rgba(245,158,11,.14); color: #fbbf24; border: 1px solid rgba(245,158,11,.18); }
+        .chat-msg-body { font-size: 14px; line-height: 1.55; color: #e5e7eb; margin-bottom: 10px; }
+        .chat-proof-card { background: #fff; border-radius: 14px; padding: 10px; margin-bottom: 10px; }
+        .chat-reactions { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+        .chat-reaction { height: 28px; border-radius: 999px; border: 1px solid rgba(255,255,255,.08); background: #0b1020; display: inline-flex; align-items: center; gap: 4px; padding: 0 10px; font-size: 11px; color: #d1d5db; cursor: pointer; }
+        .chat-msg-time { font-size: 11px; color: #6b7280; text-align: right; }
+        .community-sidebar-card { border-radius: 18px; border: 1px solid rgba(255,255,255,.05); background: linear-gradient(180deg, rgba(11,16,32,.98), rgba(7,10,20,.98)); padding: 14px; }
+        .sidebar-card-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .sidebar-member-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+        .sidebar-member-row:last-child { border-bottom: 0; }
+        .sidebar-member-avatar { width: 30px; height: 30px; border-radius: 50%; background: rgba(168,85,247,.16); display: grid; place-items: center; flex: 0 0 auto; font-size: 12px; font-weight: 700; }
+        .sidebar-member-name { font-size: 13px; font-weight: 500; flex: 1; min-width: 0; }
+        .sidebar-view-all { color: #b56cff; font-size: 12px; font-weight: 600; margin-top: 10px; display: block; text-align: center; cursor: pointer; }
+        .live-withdrawal-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+        .live-withdrawal-row:last-child { border-bottom: 0; }
+        .live-wd-check { width: 24px; height: 24px; border-radius: 50%; background: rgba(34,197,94,.14); display: grid; place-items: center; flex: 0 0 auto; }
+        .live-wd-check svg { width: 12px; height: 12px; stroke-width: 2; color: #22c55e; }
+        .live-wd-info { flex: 1; min-width: 0; }
+        .live-wd-name { font-size: 13px; font-weight: 600; }
+        .live-wd-loc { font-size: 11px; color: #9ca3af; }
+        .live-wd-amount { font-size: 14px; font-weight: 700; color: #22c55e; }
+        .live-wd-time { font-size: 10px; color: #6b7280; text-align: right; }
+        .community-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .community-stat-mini { display: flex; align-items: center; gap: 8px; padding: 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,.04); background: rgba(11,16,32,.7); }
+        .community-stat-mini-ico { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; flex: 0 0 auto; }
+        .community-stat-mini-ico svg { width: 15px; height: 15px; stroke-width: 2; color: #fff; }
+        .community-stat-mini-val { font-size: 17px; font-weight: 700; }
+        .community-stat-mini-label { font-size: 10px; color: #9ca3af; margin-top: 2px; }
+        .community-input-bar, .community-chat-input { position: sticky; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); z-index: 2; width: min(400px, calc(100% - 20px)); height: 56px; border-radius: 18px; background: #0b1020; border: 1px solid rgba(255,255,255,.1); box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; display: flex; align-items: center; padding: 0 12px; gap: 10px; }
+        .community-chat-input-field { flex: 1; background: transparent; border: none; color: #fff; font-size: 14px; outline: none; }
+        .community-chat-input-field::placeholder { color: #6b7280; }
+        .community-emoji-btn { width: 36px; height: 36px; border-radius: 50%; border: 0; background: rgba(255,255,255,.04); color: #9ca3af; display: grid; place-items: center; cursor: pointer; font-size: 18px; }
+        .community-send-btn { width: 40px; height: 40px; border-radius: 50%; border: 0; background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #fff; display: grid; place-items: center; cursor: pointer; box-shadow: 0 0 10px rgba(124,58,237,.25); }
+        .community-send-btn svg { width: 18px; height: 18px; stroke-width: 2; }
+        .drawer-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.45); backdrop-filter: blur(6px); z-index: 30; opacity: 0; pointer-events: none; transition: opacity .35s ease; }
+        .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+        .drawer-panel { position: fixed; top: 0; left: 0; width: 82%; max-width: 360px; height: 100vh; background: linear-gradient(180deg, rgba(7,10,20,.98), rgba(5,8,18,.99)); border-right: 1px solid rgba(255,255,255,.05); box-shadow: 0 0 40px rgba(0,0,0,.6); border-radius: 0 34px 34px 0; z-index: 31; transform: translateX(-100%); transition: transform .45s cubic-bezier(.22,1,.36,1); overflow-y: auto; padding: 24px 22px 40px; display: flex; flex-direction: column; }
+        .drawer-panel.open { transform: translateX(0); }
+        .drawer-close-btn { position: absolute; top: 18px; right: 18px; width: 42px; height: 42px; border-radius: 50%; background: rgba(255,255,255,.03); border: 0; color: #fff; display: grid; place-items: center; cursor: pointer; opacity: .7; }
+        .drawer-close-btn svg { width: 18px; height: 18px; stroke-width: 2; }
+        .drawer-profile { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
+        .drawer-avatar { width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(180deg, #8b5cf6, #4c1d95); box-shadow: 0 0 20px rgba(139,92,246,.25); display: grid; place-items: center; flex: 0 0 auto; font-size: 26px; font-weight: 700; cursor: pointer; position: relative; overflow: visible; }
+        .drawer-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; position: absolute; top: 0; left: 0; }
+        .camera-icon { position: absolute; bottom: -2px; right: -2px; width: 24px; height: 24px; background: #9333ea; border-radius: 50%; display: grid; place-items: center; box-shadow: 0 0 8px rgba(0,0,0,.5); z-index: 2; cursor: pointer; }
+        .camera-icon svg { width: 12px; height: 12px; color: #fff; }
+        .drawer-user-info { min-width: 0; }
+        .drawer-name { font-size: 26px; font-weight: 700; letter-spacing: -.04em; display: flex; align-items: center; gap: 4px; }
+        .drawer-membership { font-size: 13px; color: #a855f7; margin-top: 4px; }
+        .drawer-id { font-size: 12px; color: #7c8597; margin-top: 6px; display: flex; align-items: center; gap: 6px; }
+        .drawer-vip-card { border-radius: 22px; padding: 18px; background: linear-gradient(145deg, rgba(45,15,85,.95), rgba(25,10,50,.95)); border: 1px solid rgba(168,85,247,.08); display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; cursor: pointer; box-shadow: var(--shadow-sm); }
+        .drawer-section-label { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #7c8597; margin: 26px 0 14px; }
+        .drawer-menu-item { height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 4px; cursor: pointer; }
+        .drawer-menu-left { display: flex; align-items: center; gap: 14px; }
+        .drawer-menu-icon { width: 20px; height: 20px; opacity: .92; }
+        .drawer-menu-label { font-size: 17px; font-weight: 500; }
+        .drawer-menu-arrow { opacity: .5; width: 16px; height: 16px; }
+        .drawer-colored-icon { width: 40px; height: 40px; border-radius: 14px; display: grid; place-items: center; flex: 0 0 auto; }
+        .drawer-colored-icon svg { width: 18px; height: 18px; stroke-width: 2; }
+        .drawer-help-card { border-radius: 20px; padding: 16px; background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.04); display: flex; align-items: center; gap: 12px; margin-top: auto; margin-bottom: 20px; }
+        .drawer-help-card svg { width: 16px; height: 16px; stroke-width: 2; }
+        .drawer-footer { display: flex; justify-content: space-between; color: #7c8597; font-size: 13px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.05); }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.7); z-index: 40; display: none; justify-content: center; align-items: center; padding: 20px; }
+        .modal-overlay.open { display: flex; }
+        .modal-panel { background: linear-gradient(180deg, rgba(12,18,38,.92), rgba(10,15,30,.92)); border: 1px solid var(--line); border-radius: 24px; width: 100%; max-width: 400px; max-height: 80vh; overflow-y: auto; padding: 20px; box-shadow: 0 16px 40px rgba(0,0,0,.5); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .modal-title { font-size: 20px; font-weight: 700; }
+        .modal-close-btn { background: rgba(255,255,255,.05); border: 0; color: #fff; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; cursor: pointer; }
+        .payment-account-card { background: rgba(168,85,247,.08); border: 1px solid rgba(168,85,247,.08); border-radius: 18px; padding: 16px; margin: 16px 0; text-align: center; position: relative; }
+        .payment-account-number { font-size: 24px; font-weight: 800; letter-spacing: 2px; color: #c084fc; margin-bottom: 8px; word-break: break-all; }
+        .payment-account-name { font-size: 15px; color: #d8d7ef; margin-bottom: 4px; }
+        .payment-account-bank { font-size: 13px; color: #9ca3af; }
+        .copy-btn { position: absolute; right: 12px; top: 12px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); color: #fff; border-radius: 8px; padding: 4px 10px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        .copy-btn.copied { background: rgba(34,197,94,.14); border-color: #22c55e; color: #4ade80; }
+        .processing-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.8); z-index: 60; display: none; justify-content: center; align-items: center; flex-direction: column; gap: 20px; }
+        .processing-overlay.open { display: flex; }
+        .spinner { width: 60px; height: 60px; border: 4px solid rgba(168,85,247,.2); border-top-color: #a855f7; border-radius: 50%; animation: spin .8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .processing-text { color: #fff; font-size: 18px; font-weight: 600; }
+        .success-check-wrap { width: 80px; height: 80px; margin: 0 auto 20px; position: relative; display: grid; place-items: center; }
+        .success-check-circle { width: 80px; height: 80px; border-radius: 50%; background: rgba(34,197,94,0.12); position: absolute; border: 3px solid #22c55e; box-shadow: 0 0 20px rgba(34,197,94,0.25); animation: pulseCheck 1.8s ease-in-out infinite; }
+        @keyframes pulseCheck { 0%,100%{ box-shadow: 0 0 16px rgba(34,197,94,0.25); } 50%{ box-shadow: 0 0 30px rgba(34,197,94,0.5); } }
+        .success-check-mark { position: relative; z-index: 2; }
+        .success-check-mark svg { width: 40px; height: 40px; }
+        .success-check-mark svg path { stroke: #22c55e; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 60; stroke-dashoffset: 60; animation: drawCheck 0.6s ease forwards 0.4s; }
+        @keyframes drawCheck { to { stroke-dashoffset: 0; } }
+        .detail-square { background: rgba(11,16,32,.7); border-radius: 16px; padding: 16px; border: 1px solid rgba(255,255,255,.06); margin-bottom: 16px; }
+        .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+        .detail-row:last-child { border-bottom: 0; }
+        .detail-label { color: #9ca3af; font-size: 13px; }
+        .detail-value { font-weight: 600; font-size: 14px; color: #e5e7eb; }
+        .detail-value.green { color: #22c55e; }
+        .detail-value.red { color: #f87171; }
+        .detail-value.ref { font-family: 'Courier New', monospace; font-size: 12px; letter-spacing: 1px; }
+        .currency-selector { position: relative; }
+        .currency-btn { background: transparent; border: 1px solid rgba(255,255,255,.12); color: #fff; border-radius: 8px; padding: 4px 10px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer; white-space: nowrap; }
+        .currency-dropdown { position: absolute; top: 100%; right: 0; margin-top: 6px; background: #0d1128; border: 1px solid rgba(255,255,255,.08); border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,.5); display: none; z-index: 50; }
+        .currency-dropdown.open { display: block; }
+        .currency-option { padding: 10px 18px; font-size: 14px; cursor: pointer; white-space: nowrap; color: #d1d5db; font-weight: 500; }
+        .currency-option:hover { background: rgba(255,255,255,.04); }
+        .currency-option.selected { color: #a855f7; font-weight: 600; }
+        .bottom-nav { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(10px + var(--safe)); width: min(430px, 100%); z-index: 20; padding: 0 10px; }
+        .nav-shell { display: flex; align-items: stretch; justify-content: space-between; padding: 2px 4px; border-radius: 26px; background: rgba(11,16,32,.98); border: 1px solid rgba(255,255,255,.05); box-shadow: 0 8px 24px rgba(0,0,0,.3); backdrop-filter: blur(16px); }
+        .nav-item { flex: 1; min-width: 0; border: 0; background: transparent; color: #9aa3b2; padding: 10px 2px 11px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11px; line-height: 1; cursor: pointer; position: relative; overflow: hidden; white-space: nowrap; }
+        .nav-item svg { width: 22px; height: 22px; stroke-width: 2; }
+        .nav-item span { width: 100%; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+        .nav-item.active { color: #a855f7; }
+        .nav-item.active svg { color: #a855f7; }
+        .nav-item .dot { position: absolute; bottom: 3px; width: 6px; height: 6px; border-radius: 50%; background: #a855f7; box-shadow: 0 0 8px rgba(168,85,247,.25); display: none; }
+        .nav-item.active .dot { display: block; }
+        @media (max-width: 360px) {
+            .balance-grid { grid-template-columns: 1fr; }
+            .home-wallet-placeholder { display: none; }
+            .overview-grid { grid-template-columns: repeat(2,1fr); }
+            .stat-grid { grid-template-columns: repeat(2,1fr); }
+            .plan-main { grid-template-columns: 1fr; }
+            .profit-box { border-left: 0; padding-left: 0; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.06); }
+            .feature-row { grid-template-columns: repeat(2,1fr); }
+            .withdraw-hero-grid, .wallet-hero-grid { grid-template-columns: 1fr; }
+            .wallet-art-container { order: -1; }
+            .wallet-stats { grid-template-columns: 1fr; }
+            .wallet-stat-split { padding-left: 0; border-left: 0; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.07); }
+            .community-chat-layout { grid-template-columns: 1fr; }
+            .community-sidebar-col { display: none; }
+            .kpi-grid { grid-template-columns: repeat(1, 1fr); }
+        }
+        #forgotPasswordModal { z-index: 150 !important; display: flex !important; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
+        #forgotPasswordModal.open { opacity: 1; pointer-events: auto; }
+
+        /* ---- BANNER CAROUSEL ---- */
+        .banner-carousel {
+          position: relative;
+          width: 100%;
+          max-width: 360px;
+          margin: 0 auto;
+          border-radius: 18px;
+          overflow: hidden;
+          box-shadow: var(--shadow-sm);
+          background: #0b1020;
+          border: 1px solid var(--line);
+        }
+        .banner-slides {
+          display: flex;
+          transition: transform 0.4s ease;
+          will-change: transform;
+        }
+        .banner-slide {
+          min-width: 100%;
+          height: 180px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .banner-slide img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          border-radius: 0;
+        }
+        .banner-dots {
+          position: absolute;
+          bottom: 10px;
+          left: 50%;
+          transform: translateX(-50%);
+          display: flex;
+          gap: 8px;
+        }
+        .banner-dots .dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.35);
+          cursor: pointer;
+          transition: background 0.2s;
+        }
+        .banner-dots .dot.active {
+          background: #a855f7;
+          box-shadow: 0 0 8px rgba(168,85,247,.4);
+        }
+        /* ---- COUNTRY SELECTOR ---- */
+        .country-select-btn:hover { border-color: var(--purple); }
+        .country-option { padding: 10px 14px; font-size: 14px; cursor: pointer; color: #d1d5db; }
+        .country-option:hover { background: rgba(255,255,255,.04); }
+        .country-option.selected { color: #a855f7; font-weight: 600; }
+        /* ---- profile inputs ---- */
+        .profile-input {
+            height:48px;
+            border-radius:12px;
+            border:1px solid rgba(255,255,255,.08);
+            background: rgba(255,255,255,.04);
+            color:#fff;
+            padding:0 14px;
+            font-size:15px;
+            outline:none;
+            margin-bottom:8px;
+        }
+        .profile-input:focus { border-color: var(--purple); }
+        /* ---- KYC overlay ---- */
+        .kyc-id-overlay {
+          position: absolute;
+          top: 10%;
+          left: 12%;
+          right: 12%;
+          bottom: 20%;
+          border: 2px dashed #a855f7;
+          border-radius: 12px;
+          pointer-events: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .kyc-id-overlay span {
+          background: rgba(0,0,0,0.7);
+          color: #fff;
+          padding: 4px 12px;
+          border-radius: 999px;
+          font-size: 12px;
+          white-space: nowrap;
+        }
+        .kyc-example-img {
+          width: 100%;
+          max-width: 160px;
+          border-radius: 12px;
+          border: 1px solid rgba(255,255,255,.1);
+          display: block;
+          margin: 0 auto 8px;
+        }
+        .refer-how-box {
+          background: rgba(11,16,32,.7);
+          border-radius: 12px;
+          padding: 10px 12px;
+          margin-top: 10px;
+          border: 1px solid rgba(255,255,255,.06);
+          font-size: 13px;
+          color: #cbd5e1;
+          line-height: 1.6;
+        }
+        .refer-how-title {
+          color: #b56cff;
+          font-weight: 600;
+          margin-bottom: 6px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+        .refer-how-title svg { transition: transform .2s; }
+        .refer-how-title.expanded svg { transform: rotate(180deg); }
+        .refer-instructions { display: none; margin-top: 8px; }
+        .refer-instructions.show { display: block; }
+        .profile-close-btn { background: none; border: none; color: #fff; cursor: pointer; padding: 4px; font-size: 22px; line-height: 1; }
+    </style>
+</head>
+<body>
+    <!-- AUTH SCREEN ONLY -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-card">
+            <img src="assets/logo.png" alt="Trade Pulse AI Logo" class="login-logo" onerror="this.style.display='none'">
+            <div id="loginTitle" class="login-title">Sign In</div>
+            <div id="loginSubtitle" class="login-subtitle">Access your private trading dashboard</div>
+            <div class="toggle-row">
+                <button type="button" id="signInToggle" class="toggle-btn active">Sign In</button>
+                <button type="button" id="signUpToggle" class="toggle-btn">Sign Up</button>
+            </div>
+            <form id="authForm">
+                <div class="form-group" id="fullNameGroup" style="display:none;">
+                    <label for="fullName">Full Name</label>
+                    <input id="fullName" type="text" placeholder="Enter full name">
+                    <span class="form-hint">Your first and last name.</span>
+                </div>
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input id="username" type="text" placeholder="Choose a username" autocomplete="username">
+                    <span class="form-hint">Min 5 characters, no spaces.</span>
+                </div>
+                <div class="form-group" id="emailGroup" style="display:none;">
+                    <label for="email">Email</label>
+                    <input id="email" type="email" placeholder="Enter email" autocomplete="email">
+                    <span class="form-hint">A valid email address.</span>
+                </div>
+                <!-- Country dropdown (sign-up only) -->
+                <div class="form-group" id="countryGroup" style="display:none;">
+                    <label for="countrySelectorBtn">Country</label>
+                    <div class="country-selector" style="position:relative;">
+                        <button type="button" id="countrySelectorBtn" class="country-select-btn" style="width:100%; height:48px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.04); color:#fff; padding:0 14px; font-size:15px; text-align:left; cursor:pointer; display:flex; align-items:center; justify-content:space-between;">
+                            <span id="selectedCountryText">Select Country</span>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+                        </button>
+                        <div class="country-dropdown" id="countryDropdown" style="position:absolute; top:calc(100% + 4px); left:0; right:0; max-height:220px; overflow-y:auto; background:#0d1128; border:1px solid rgba(255,255,255,.08); border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,.5); display:none; z-index:50;">
+                            <!-- Options injected by JS -->
+                        </div>
+                    </div>
+                    <span class="form-hint">Your country of residence.</span>
+                </div>
+                <div class="form-group password-wrap">
+                    <label for="password">Password</label>
+                    <input id="password" type="password" placeholder="Create a password" autocomplete="current-password">
+                    <button type="button" id="eyeBtn" class="eye-toggle">👁️</button>
+                    <span class="form-hint">Min 6 chars, at least one special character (!@#$%^&*).</span>
+                </div>
+                <div class="form-group" id="inviteCodeGroup">
+                    <label for="inviteCode">Invitation Code</label>
+                    <input id="inviteCode" type="text" placeholder="Enter invitation code">
+                    <span class="form-hint">Provided by your referrer.</span>
+                </div>
+                <div id="inviteNote" class="invite-note">Use the invitation code to create an account or sign in.</div>
+                <button id="submitBtn" type="submit" class="btn">Sign In</button>
+                <button type="button" id="forgotPasswordBtn" class="btn btn-outline" style="margin-top:10px;">Forgot Password?</button>
+                <div id="errorMsg" class="error-msg"></div>
+                <div id="successMsg" class="success-msg"></div>
+            </form>
+        </div>
+    </div>
+    <!-- FORGOT PASSWORD MODAL -->
+    <div id="forgotPasswordModal" class="modal-overlay">
+        <div class="modal-panel">
+            <div class="modal-header">
+                <div class="modal-title">Reset Password</div>
+                <button type="button" class="modal-close-btn" id="closeForgotPasswordBtn">✕</button>
+            </div>
+            <div class="form-group">
+                <label for="resetFullName">Full Name</label>
+                <input id="resetFullName" type="text" placeholder="Enter your full name">
+            </div>
+            <div class="form-group password-wrap">
+                <label for="resetNewPassword">Create New Password</label>
+                <input id="resetNewPassword" type="password" placeholder="Enter new password">
+            </div>
+            <div class="form-group password-wrap">
+                <label for="resetConfirmPassword">Confirm New Password</label>
+                <input id="resetConfirmPassword" type="password" placeholder="Confirm new password">
+            </div>
+            <div class="form-group">
+                <label for="resetUsername">Username</label>
+                <input id="resetUsername" type="text" placeholder="Enter your username">
+            </div>
+            <div class="form-group">
+                <label for="resetInviteCode">Invitation Code</label>
+                <input id="resetInviteCode" type="text" placeholder="Enter invitation code">
+            </div>
+            <button type="button" class="btn" id="confirmResetPasswordBtn">Update Password</button>
+            <div class="error-msg" id="resetError"></div>
+            <div class="success-msg" id="resetSuccess"></div>
+        </div>
+    </div>
+
+    <!-- MAIN APP -->
+    <div class="app" id="mainApp">
+        <!-- DRAWER -->
+        <div class="drawer-overlay" id="drawerOverlay"></div>
+        <div class="drawer-panel" id="drawerPanel">
+            <button class="drawer-close-btn" id="drawerCloseBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            <div class="drawer-profile">
+                <div class="drawer-avatar" id="drawerAvatar" title="Change avatar">
+                    <input type="file" id="avatarInput" accept="image/*" style="display:none">
+                    <div class="camera-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+                </div>
+                <div class="drawer-user-info">
+                    <div class="drawer-name"><span id="drawerFullName">User</span> <span class="verified-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 13 4 4L19 7"/></svg></span></div>
+                    <div class="drawer-membership" id="drawerMembership">Beginner <span id="drawerKycBadge" style="cursor:pointer; font-size:10px; margin-left:6px; padding:1px 6px; border-radius:999px; font-weight:600;"></span></div>
+                    <div class="drawer-id">ID: <span id="drawerUserId">------</span> <button id="copyUidBtn" style="background:none; border:none; cursor:pointer; margin-left:6px; vertical-align:middle;" title="Copy User ID"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>
+                </div>
+            </div>
+            <div class="drawer-vip-card" id="upgradeVipBtn"><div><div style="font-size:18px;font-weight:700;">👑 Upgrade to VIP</div><div style="font-size:13px;color:#c9ced8;margin-top:4px;">Unlock higher limits...</div></div><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m9 6 6 6-6 6"/></svg></div>
+            <div class="drawer-section-label">Main Menu</div>
+            <div class="drawer-menu-item" data-nav="home"><div class="drawer-menu-left"><svg class="drawer-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9v11h6v-6h2v6h6V9"/></svg><span class="drawer-menu-label">Home</span></div><svg class="drawer-menu-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m9 6 6 6-6 6"/></svg></div>
+            <div class="drawer-menu-item" data-nav="invest"><div class="drawer-menu-left"><svg class="drawer-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-6"/><path d="M12 16V8"/><path d="M16 16v-3"/></svg><span class="drawer-menu-label">Invest</span></div><svg class="drawer-menu-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m9 6 6 6-6 6"/></svg></div>
+            <div class="drawer-menu-item" data-nav="withdraw"><div class="drawer-menu-left"><svg class="drawer-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg><span class="drawer-menu-label">Withdraw</span></div><svg class="drawer-menu-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m9 6 6 6-6 6"/></svg></div>
+            <div class="drawer-menu-item" data-nav="wallet"><div class="drawer-menu-left"><svg class="drawer-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18v10H3z"/><path d="M7 7v10"/><path d="M17 7v10"/><path d="M8 11h8"/></svg><span class="drawer-menu-label">Wallet</span></div><svg class="drawer-menu-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m9 6 6 6-6 6"/></svg></div>
+            <div class="drawer-menu-item" data-nav="community"><div class="drawer-menu-left"><svg class="drawer-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3Z"/><path d="M8 13c1.7 0 3-1.3 3-3S9.7 7 8 7 5 8.3 5 10s1.3 3 3 3Z"/><path d="M3 19c.7-2.7 3-4 5-4s4.3 1.3 5 4"/></svg><span class="drawer-menu-label">Community</span></div><svg class="drawer-menu-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m9 6 6 6-6 6"/></svg></div>
+            <div class="drawer-section-label">Quick Actions</div>
+            <div class="drawer-menu-item" id="drawerDepositBtn"><div class="drawer-menu-left"><div class="drawer-colored-icon" style="background:rgba(34,197,94,.14);"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg></div><span class="drawer-menu-label">Deposit Funds</span></div></div>
+            <div class="drawer-menu-item" id="drawerReferBtn"><div class="drawer-menu-left"><div class="drawer-colored-icon" style="background:rgba(245,158,11,.14);"><svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3Z"/><path d="M8 13c1.7 0 3-1.3 3-3S9.7 7 8 7 5 8.3 5 10s1.3 3 3 3Z"/></svg></div><span class="drawer-menu-label">Refer & Earn</span></div></div>
+            <div class="drawer-menu-item" id="drawerTxHistoryBtn"><div class="drawer-menu-left"><div class="drawer-colored-icon" style="background:rgba(59,130,246,.14);"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><span class="drawer-menu-label">Transaction History</span></div></div>
+            <div class="drawer-menu-item" id="drawerHelpBtn"><div class="drawer-menu-left"><div class="drawer-colored-icon" style="background:rgba(168,85,247,.14);"><svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><span class="drawer-menu-label">Help Center</span></div></div>
+            <div class="drawer-section-label">Other</div>
+            <div class="drawer-menu-item" id="drawerNotificationsBtn"><div class="drawer-menu-left"><svg class="drawer-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 17H5c1.1-1 2-2.2 2-4V9a5 5 0 0 1 10 0v4c0 1.8.9 3 2 4h-4"/><path d="M10 19a2 2 0 0 0 4 0"/></svg><span class="drawer-menu-label">Notifications</span></div></div>
+            <div class="drawer-menu-item" id="drawerSecurityBtn"><div class="drawer-menu-left"><svg class="drawer-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span class="drawer-menu-label">Security Center</span></div></div>
+            <div class="drawer-menu-item" id="drawerSettingsBtn"><div class="drawer-menu-left"><svg class="drawer-menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="drawer-menu-label">Settings</span></div></div>
+            <div class="drawer-menu-item" id="drawerLogoutBtn"><div class="drawer-menu-left"><svg class="drawer-menu-icon" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="drawer-menu-label" style="color:#ef4444;">Log Out</span></div></div>
+            <div class="drawer-help-card"><div style="font-size:24px;">🎧</div><div style="flex:1;"><div style="font-weight:600;">Need Help?</div><div style="font-size:12px;color:#9ca3af;">Our support team is 24/7</div></div><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m9 6 6 6-6 6"/></svg></div>
+            <div class="drawer-footer"><span>Version 2.4.1</span><span>🛡 100% Secure</span></div>
+        </div>
+
+        <!-- TOPBAR -->
+        <div class="topbar">
+            <button class="icon-btn" id="menuBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+            <div class="title" id="pageTitle">Home</div>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <div class="currency-selector" id="currencySelector"><button class="currency-btn" id="currencyBtn">USDT ▾</button><div class="currency-dropdown" id="currencyDropdown"><div class="currency-option selected" data-currency="USDT">₮ USDT</div><div class="currency-option" data-currency="USD">$ USD</div><div class="currency-option" data-currency="EUR">€ EUR</div><div class="currency-option" data-currency="GBP">£ GBP</div><div class="currency-option" data-currency="NGN">₦ NGN</div></div></div>
+                <button class="icon-btn" id="notificationBell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 17H5c1.1-1 2-2.2 2-4V9a5 5 0 0 1 10 0v4c0 1.8.9 3 2 4h-4"/><path d="M10 19a2 2 0 0 0 4 0"/></svg><span class="badge" id="notificationBadge">0</span></button>
+            </div>
+        </div>
+
+        <!-- HOME VIEW (default USDT balances) -->
+        <div class="view active" id="homeView">
+            <div class="section"><div class="balance-card"><div class="balance-grid"><div><div class="balance-label"><span>Total Balance</span><img src="assets/icon.png" alt="Wallet" style="width:48px; height:48px; vertical-align: middle; margin-left: 6px;" /><svg class="eye" id="homeBalanceEye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></div><div class="amount" id="homeBalance">₮ 0.00</div><div class="fx" id="homeFx">≈ $ 0.00</div><div class="cta-row"><button class="btn btn-primary" data-nav="wallet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Deposit</button><button class="btn btn-outline btn-disabled" id="withdrawNavBtn" disabled>Withdraw</button></div></div><div class="home-wallet-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M21 12v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6Z"/><path d="M16 14h4"/><circle cx="16.5" cy="14" r="1.5" fill="currentColor" stroke="none"/></svg></div></div></div></div>
+            <div class="section"><div class="quick-actions" id="quickActions"></div></div>
+
+            <!-- BANNER CAROUSEL -->
+            <div class="section" style="margin-top:20px;">
+              <div class="banner-carousel">
+                <div class="banner-slides" id="bannerSlides">
+                  <div class="banner-slide active">
+                    <img src="assets/banners/banner1.jpg" alt="Banner 1" />
+                  </div>
+                  <div class="banner-slide">
+                    <img src="assets/banners/banner2.jpg" alt="Banner 2" />
+                  </div>
+                  <div class="banner-slide">
+                    <img src="assets/banners/banner3.jpg" alt="Banner 3" />
+                  </div>
+                </div>
+                <div class="banner-dots" id="bannerDots">
+                  <span class="dot active" data-index="0"></span>
+                  <span class="dot" data-index="1"></span>
+                  <span class="dot" data-index="2"></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="section" style="margin-top:20px;"><div class="section-header"><div class="section-title">Today's Overview</div><button class="chip" id="overviewPeriodChip">Today<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6-6 6"/></svg></button></div><div class="overview-grid" id="overviewCards"></div></div>
+            <div class="section" style="margin-top:20px;"><div class="chart-card panel"><div class="chart-top"><div><div class="chart-title">Portfolio Performance</div><div class="profit"><span class="dot"></span>+<span id="profitPercent">0%</span><span class="muted">Since start</span></div></div><button class="chip">All Time<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6-6 6"/></svg></button></div><div class="chart-wrap" id="chartContainer"></div></div></div>
+            <div class="section" style="margin-top:20px;"><div class="section-header"><div class="section-title">Recent Transactions</div><button class="icon-btn" style="color:#a855f7;font-size:14px;font-weight:500" id="viewAllTransactionsBtn">View All<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:2px"><path d="m9 6 6 6-6 6"/></svg></button></div><div class="transactions panel" id="recentTransactions"></div></div>
+        </div>
+
+        <!-- INVEST VIEW -->
+        <div class="view" id="investView">
+            <div class="section"><div class="overview-card panel"><div class="overview-head"><h2>My Investment Overview</h2><div class="hide-balance" id="hideBalanceToggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/><path d="M3 21l18-18"/></svg><span>Hide Balance</span></div></div><div class="stat-grid"><div class="stat2"><div class="label">Total Invested</div><div class="value" style="color:#34d399" id="totalInvested">₮ 0.00</div><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M4 7h10a2 2 0 0 1 2 2v10H6a2 2 0 0 1-2-2V7Z"/><path d="M8 7V5a2 2 0 0 1 2-2h8v10"/><path d="M8 12h6"/></svg></div></div><div class="stat2"><div class="label">Total Profit</div><div class="value" style="color:#34d399" id="totalProfit">₮ 0.00</div><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#9bb0ff" stroke-width="2"><path d="M4 17l6-6 4 4 6-6"/><path d="M14 9h6v6"/></svg></div></div><div class="stat2"><div class="label">Active Plans</div><div class="value" style="color:#4ea1ff" id="activePlansCount">0</div><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#7fb3ff" stroke-width="2"><path d="M4 7h16v10H4z"/><path d="M8 7V5h8v2"/><path d="M9 11h6"/></svg></div></div><div class="stat2"><div class="label">Total Withdrawn</div><div class="value" style="color:#b56cff" id="totalWithdrawn">₮ 0.00</div><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg></div></div></div></div></div>
+            <div class="tabs" id="investTabs"><div class="tab active" data-tab="plans">Investment Plans</div><div class="tab" data-tab="myinvestments">My Investments</div><div class="tab" data-tab="history">Investment History</div></div><div class="tab-line"></div>
+            <div id="investPlansView">
+                <div class="plans-head"><h3>Choose an Investment Plan</h3><button class="compare-btn" id="comparePlansBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18"/><path d="M5 7h14"/><path d="M6 7l-2 4h4z"/><path d="M18 7l-2 4h4z"/><path d="M5 17h14"/></svg>Compare Plans</button></div>
+                
+                <!-- BEGINNER PLAN -->
+                <div class="plan-card" data-plan="beginner">
+                    <div class="plan-main">
+                        <div class="plan-badge" style="color:#45ea7b">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 16.8 6.4 19.2l1.1-6.2L3 8.6l6.2-.9L12 2Z"/></svg>
+                            <div class="name">Beginner Plan</div>
+                        </div>
+                        <div class="plan-copy">
+                            <div class="plan-title-row"><div class="plan-title" style="color:#2fe56a">Beginner Plan</div><div class="popular">Most Popular</div></div>
+                            <p class="plan-desc">Perfect for beginners to start earning consistent daily profits.</p>
+                        </div>
+                        <div class="profit-box" style="color:#22e05f">
+                            <div class="small">Daily Profit</div>
+                            <div class="rate">3.0%</div>
+                            <button class="invest-now green-btn invest-now-btn">Invest Now</button>
+                        </div>
+                    </div>
+                    <div class="plan-meta">
+                        <div class="meta-item"><div class="meta-label">Minimum Invest</div><div class="meta-value" id="planMin1">₦ 10,000</div></div>
+                        <div class="meta-item"><div class="meta-label">Maximum Invest</div><div class="meta-value" id="planMax1">₦ 49,999</div></div>
+                        <div class="meta-item"><div class="meta-label">Duration</div><div class="meta-value">30 Days</div></div>
+                        <div class="meta-item"><div class="meta-label">Monthly ROI</div><div class="meta-value">90%</div></div>
+                    </div>
+                </div>
+                
+                <!-- STANDARD PLAN -->
+                <div class="plan-card" data-plan="standard">
+                    <div class="plan-main">
+                        <div class="plan-badge" style="color:#b96cff">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 3 8l3 11h12l3-11-9-6Zm0 3 5.8 4.1-2 7.1H8.2l-2-7.1L12 5Z"/></svg>
+                            <div class="name">Standard Plan</div>
+                        </div>
+                        <div class="plan-copy">
+                            <div class="plan-title-row"><div class="plan-title" style="color:#b56cff">Standard Plan</div></div>
+                            <p class="plan-desc">Higher returns for growing investors.</p>
+                        </div>
+                        <div class="profit-box" style="color:#b56cff">
+                            <div class="small">Daily Profit</div>
+                            <div class="rate">3.5%</div>
+                            <button class="invest-now purple-btn invest-now-btn">Invest Now</button>
+                        </div>
+                    </div>
+                    <div class="plan-meta">
+                        <div class="meta-item"><div class="meta-label">Minimum Invest</div><div class="meta-value" id="planMin2">₦ 50,000</div></div>
+                        <div class="meta-item"><div class="meta-label">Maximum Invest</div><div class="meta-value" id="planMax2">₦ 199,999</div></div>
+                        <div class="meta-item"><div class="meta-label">Duration</div><div class="meta-value">30 Days</div></div>
+                        <div class="meta-item"><div class="meta-label">Monthly ROI</div><div class="meta-value">105%</div></div>
+                    </div>
+                </div>
+                
+                <!-- PREMIUM PLAN -->
+                <div class="plan-card" data-plan="premium">
+                    <div class="plan-main">
+                        <div class="plan-badge" style="color:#ffb020">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 9.4 7.5l-6 .9 4.3 4.2-1 6 5.3-2.8 5.3 2.8-1-6 4.3-4.2-6-.9L12 2Z"/><path d="M7 22h10"/></svg>
+                            <div class="name">Premium Plan</div>
+                        </div>
+                        <div class="plan-copy">
+                            <div class="plan-title-row"><div class="plan-title" style="color:#f2a31b">Premium Plan</div></div>
+                            <p class="plan-desc">Our most chosen plan with maximum benefits.</p>
+                        </div>
+                        <div class="profit-box" style="color:#f2a31b">
+                            <div class="small">Daily Profit</div>
+                            <div class="rate">4.0%</div>
+                            <button class="invest-now amber-btn invest-now-btn">Invest Now</button>
+                        </div>
+                    </div>
+                    <div class="plan-meta">
+                        <div class="meta-item"><div class="meta-label">Minimum Invest</div><div class="meta-value" id="planMin3">₦ 200,000</div></div>
+                        <div class="meta-item"><div class="meta-label">Maximum Invest</div><div class="meta-value" id="planMax3">₦ 499,999</div></div>
+                        <div class="meta-item"><div class="meta-label">Duration</div><div class="meta-value">30 Days</div></div>
+                        <div class="meta-item"><div class="meta-label">Monthly ROI</div><div class="meta-value">120%</div></div>
+                    </div>
+                </div>
+                
+                <!-- VIP PLAN -->
+                <div class="plan-card" data-plan="vip" id="vipPlanCard">
+                    <div class="plan-main">
+                        <div class="plan-badge" style="color:#42a5ff">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 2.5 7.2 5 20h14l2.5-12.8L12 2Zm0 4 5.4 3-1.5 7.8H8.1L6.6 9 12 6Z"/></svg>
+                            <div class="name">VIP Plan</div>
+                        </div>
+                        <div class="plan-copy">
+                            <div class="plan-title-row"><div class="plan-title" style="color:#4fa0ff">VIP Plan</div></div>
+                            <p class="plan-desc">Exclusive plan with highest returns and priority support.</p>
+                        </div>
+                        <div class="profit-box" style="color:#4fa0ff">
+                            <div class="small">Daily Profit</div>
+                            <div class="rate">4.5%</div>
+                            <button class="invest-now blue-btn invest-now-btn">Invest Now</button>
+                        </div>
+                    </div>
+                    <div class="plan-meta">
+                        <div class="meta-item"><div class="meta-label">Minimum Invest</div><div class="meta-value" id="planMin4">₦ 500,000</div></div>
+                        <div class="meta-item"><div class="meta-label">Maximum Invest</div><div class="meta-value" id="planMax4">Unlimited</div></div>
+                        <div class="meta-item"><div class="meta-label">Duration</div><div class="meta-value">30 Days</div></div>
+                        <div class="meta-item"><div class="meta-label">Monthly ROI</div><div class="meta-value">135%</div></div>
+                    </div>
+                </div>
+
+                <div class="feature-row"><div class="feature"><div class="icon" style="color:#6bd6ff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 5v6c0 5.5 3.8 9.7 9 11 5.2-1.3 9-5.5 9-11V5l-9-3Z"/><path d="M9 12l2 2 4-5"/></svg></div><div class="txt"><b>100% Secure</b><span>Bank-level security</span></div></div><div class="feature"><div class="icon" style="color:#ffb020"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 4 14h7l-1 8 10-13h-7l0-7Z"/></svg></div><div class="txt"><b>Instant Withdrawals</b><span>Withdraw in minutes</span></div></div><div class="feature"><div class="icon" style="color:#39d98a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 12h8"/><path d="M12 8v8"/></svg></div><div class="txt"><b>24/7 Support</b><span>We're here to help</span></div></div><div class="feature"><div class="icon" style="color:#ff7da6"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16"/><path d="M12 4v16"/></svg></div><div class="txt"><b>No Hidden Fees</b><span>Transparent system</span></div></div></div>
+                <div class="promo"><div class="promo-grid"><div><h4>Increase Your Earnings</h4><p>Upgrade to VIP and get higher daily profits, priority withdrawals and exclusive bonuses.</p></div><button class="upgrade" id="promoUpgradeBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 8 8l-6 1 4 5-1 7 7-4 7 4-1-7 4-5-6-1-4-6Z"/></svg>Upgrade to VIP<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></button></div></div>
+            </div>
+            <div id="myInvestmentsView" style="display:none;"><div class="section"><div class="panel" style="padding:20px; text-align:center; color:#9ca3af;">You don't have any active investments. Start investing now!</div></div></div>
+            <div id="investHistoryView" style="display:none;"><div class="section"><div class="panel" style="padding:20px; text-align:center; color:#9ca3af;">No investment history yet.</div></div></div>
+        </div>
+
+        <!-- WITHDRAW VIEW -->
+        <div class="view" id="withdrawView">
+            <div class="section"><div class="withdraw-hero panel"><div class="withdraw-hero-grid"><div class="withdraw-copy"><div class="withdraw-label">Available Balance<svg class="withdraw-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></div><div class="withdraw-balance" id="withdrawBalance">₮ 0.00</div><div class="withdraw-fx" id="withdrawFx">≈ $ 0.00</div><div class="withdrawable-block"><div class="withdrawable-label">Withdrawable Amount<svg class="info-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg></div><div class="withdrawable-value" id="withdrawableAmount">₮ 0.00</div></div></div><div class="withdraw-art"><svg viewBox="0 0 260 220"><defs><linearGradient id="wgrad1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#c084fc"/><stop offset="55%" stop-color="#9333ea"/><stop offset="100%" stop-color="#4c1d95"/></linearGradient><linearGradient id="wgrad2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#a855f7" stop-opacity=".95"/><stop offset="100%" stop-color="#6d28d9" stop-opacity=".7"/></linearGradient></defs><rect x="86" y="54" width="102" height="92" rx="14" fill="url(#wgrad1)"/><rect x="74" y="42" width="108" height="84" rx="14" fill="url(#wgrad2)" opacity=".7"/><rect x="62" y="30" width="112" height="80" rx="14" fill="#7c3aed" opacity=".55"/><circle cx="172" cy="152" r="18" fill="#7c3aed"/><path d="M172 142v18M164 150l8-8 8 8" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div></div></div>
+            <div class="section"><div class="withdraw-section-title">1. Choose Withdrawal Method</div><div class="withdraw-method-grid">
+                <button class="method-card active" data-method="bank"><div class="method-icon method-purple"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg></div><div class="method-name">Bank Transfer</div><div class="method-time">1-24 Hours</div><span class="method-check">✓</span></button>
+                <button class="method-card" data-method="usdt_trc20"><div class="method-icon method-green"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><text x="12" y="17" text-anchor="middle" fill="white" font-size="10" font-weight="bold">₮</text></svg></div><div class="method-name">USDT (TRC20)</div><div class="method-time">5-30 Minutes</div></button>
+                <button class="method-card" data-method="usdt_bep20"><div class="method-icon method-amber"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><text x="12" y="17" text-anchor="middle" fill="white" font-size="10" font-weight="bold">₮</text></svg></div><div class="method-name">USDT (BEP20)</div><div class="method-time">5-30 Minutes</div></button>
+                <button class="method-card" data-method="ewallet"><div class="method-icon method-blue"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M22 8h-6a2 2 0 0 0 0 4h6"/></svg></div><div class="method-name">E-Wallet</div><div class="method-time">Instant</div></button>
+            </div></div>
+            <div class="section"><div class="withdraw-section-title">2. Enter Withdrawal Details</div><div class="panel withdraw-form" id="withdrawDetailsForm"></div></div>
+            <div class="section" style="margin-bottom:120px;"><div class="section-header"><div class="section-title">Recent Withdrawals</div><button class="chip" id="viewAllWithdrawalsBtn">View All<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></button></div><div class="transactions panel" id="recentWithdrawals"></div></div>
+        </div>
+
+        <!-- WALLET VIEW -->
+        <div class="view" id="walletView">
+            <div class="section"><div class="wallet-hero panel"><div class="wallet-hero-grid"><div class="wallet-copy"><div class="wallet-label"><span>Total Wallet Balance</span><svg class="wallet-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></div><div class="wallet-balance" id="walletTotalBalance">₮ 0.00</div><div class="wallet-fx" id="walletTotalFx">≈ $ 0.00</div><div class="wallet-stats"><div class="wallet-stat"><div class="wallet-stat-label">Available Balance</div><div class="wallet-stat-value wallet-green" id="availableBalance">₮ 0.00</div></div><div class="wallet-stat wallet-stat-split"><div class="wallet-stat-label">Locked Balance<svg class="info-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg></div><div class="wallet-stat-value wallet-purple" id="lockedBalance">₮ 0.00</div></div></div></div><div class="wallet-art-container"><svg viewBox="0 0 260 220"><defs><linearGradient id="walletGrad1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#8b5cf6"/><stop offset="50%" stop-color="#6d28d9"/><stop offset="100%" stop-color="#3b0764"/></linearGradient><linearGradient id="walletGrad2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#a855f7" stop-opacity=".95"/><stop offset="100%" stop-color="#5b21b6" stop-opacity=".72"/></linearGradient></defs><rect x="88" y="54" width="104" height="92" rx="16" fill="url(#walletGrad1)"/><rect x="74" y="42" width="108" height="84" rx="14" fill="url(#walletGrad2)" opacity=".8"/><rect x="60" y="30" width="112" height="82" rx="14" fill="#5b21b6" opacity=".46"/><circle cx="175" cy="154" r="18" fill="#7c3aed"/><path d="M175 144v18M167 152l8-8 8 8" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div></div></div>
+            <div class="section"><div class="wallet-actions">
+                <button class="wallet-action"><div class="wallet-action-ico green"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg></div><div class="wallet-action-title">Deposit</div><div class="wallet-action-sub">Add Funds</div></button>
+                <button class="wallet-action"><div class="wallet-action-ico purple"><svg viewBox="0 0 24 24" fill="none" stroke="#b56cff" stroke-width="2"><path d="M12 21V9"/><path d="m7 14 5-5 5 5"/><path d="M5 3h14"/></svg></div><div class="wallet-action-title">Withdraw</div><div class="wallet-action-sub">Cash Out</div></button>
+                <button class="wallet-action"><div class="wallet-action-ico blue"><svg viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><path d="M7 7h14"/><path d="m18 4 3 3-3 3"/><path d="M17 17H3"/><path d="m6 14-3 3 3 3"/></svg></div><div class="wallet-action-title">Transfer</div><div class="wallet-action-sub">Send Money</div></button>
+                <button class="wallet-action"><div class="wallet-action-ico amber"><svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M12 8v5l3 2"/><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 9 9"/></svg></div><div class="wallet-action-title">History</div><div class="wallet-action-sub">View All</div></button>
+                <button class="wallet-action"><div class="wallet-action-ico cobalt"><svg viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"></rect><path d="M3 10h18"/><path d="M7 15h3"/></svg></div><div class="wallet-action-title">Cards</div><div class="wallet-action-sub">Manage Cards</div></button>
+            </div></div>
+            <div class="section"><div class="section-header wallet-head"><div class="section-title">Wallet Accounts</div><button class="chip wallet-manage">Manage<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></button></div>
+            <div class="panel wallet-card-list" id="walletAccountsContainer"></div>
+            </div>
+            <div class="section"><div class="section-header wallet-head"><div class="section-title">Recent Transactions</div><button class="chip wallet-manage" id="viewAllWalletTx">View All<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></button></div><div class="panel wallet-transactions" id="walletRecentTx"></div></div>
+            <div class="section" style="margin-bottom:120px;"><div class="secure-banner panel"><div class="secure-left"><div class="secure-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 9.2-8 10-4.5-.8-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-5"/></svg></div><div><div class="secure-title">Secure Your Wallet</div><div class="secure-text">Enable 2FA and transaction PIN to keep your funds safe.</div></div></div><button class="secure-btn" id="secureNowBtn">Secure Now<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></button></div></div>
+        </div>
+
+        <!-- COMMUNITY VIEW -->
+        <div class="view" id="communityView">
+            <div class="section"><div class="community-hero"><div class="community-hero-top"><img src="assets/images/logo.png" alt="Trade Pulse AI Logo" class="community-logo"><div class="community-hero-info"><div class="community-hero-title">Trade Pulse AI Community<span class="verified-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 13 4 4L19 7"/></svg></span></div><div class="community-members-row"><span>12,586 Members</span><span class="online-dot"></span><span class="online-text" id="onlineCount">1,256 Online</span></div><div class="community-desc">Official community for investors to connect, share wins, learn and grow together.</div><button class="community-invite-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg>Invite Friends</button></div></div></div></div>
+            <div class="section"><div class="community-quick-grid">
+                <div class="community-quick-card"><div class="community-quick-ico purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="community-quick-label">Chat</div><div class="community-quick-status"><span class="live-dot"></span>Active</div></div>
+                <div class="community-quick-card"><div class="community-quick-ico blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div><div class="community-quick-label">Announcements</div><div class="community-quick-status">12 New</div></div>
+                <div class="community-quick-card"><div class="community-quick-ico green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 9.2-8 10-4.5-.8-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-5"/></svg></div><div class="community-quick-label">Withdrawals</div><div class="community-quick-status"><span class="live-dot"></span>Live</div></div>
+                <div class="community-quick-card"><div class="community-quick-ico amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3Z"/><path d="M8 13c1.7 0 3-1.3 3-3S9.7 7 8 7 5 8.3 5 10s1.3 3 3 3Z"/></svg></div><div class="community-quick-label">Members</div><div class="community-quick-status">12.5k</div></div>
+            </div></div>
+            <div class="section">
+                <div class="community-tabs">
+                    <div class="community-tab active" id="tabGeneralChat">General Chat</div>
+                    <div class="community-tab" id="tabWinsProofs">Wins & Proofs</div>
+                    <div class="community-tab" id="tabMarketUpdates">Market Updates</div>
+                    <div class="community-tab" id="tabHelpDesk">Help Desk</div>
+                </div>
+            </div>
+            <div class="section"><div class="community-pinned"><div class="community-pin-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg></div><div class="community-pin-text"><div class="community-pin-title">Welcome to Trade Pulse AI Community!</div><div class="community-pin-sub">Read the rules and introduce yourself. Happy trading!</div></div><svg class="community-pin-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div></div>
+            <div class="section" style="margin-bottom:120px;">
+                <div class="community-chat-layout" id="communityChatLayout">
+                    <div class="community-chat-col" id="communityChatColumn"></div>
+                    <div class="community-sidebar-col" id="communitySidebarCol">
+                        <div class="community-sidebar-card"><div class="sidebar-card-title"><span class="online-dot"></span>Online Members <span id="sidebarOnlineCount">1,256</span></div><div id="sidebarOnlineMembers"></div><span class="sidebar-view-all">View All Members →</span></div>
+                        <div class="community-sidebar-card" id="liveWithdrawalSidebarCard" onclick="switchToWinsProofs()"><div class="sidebar-card-title">Live Withdrawals</div><div id="liveWithdrawalsFeed"></div></div>
+                        <div class="community-sidebar-card"><div class="sidebar-card-title">Community Stats</div><div class="community-stats-grid"><div class="community-stat-mini"><div class="community-stat-mini-ico" style="background:rgba(168,85,247,.14);"><svg viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2"><path d="M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3Z"/><path d="M8 13c1.7 0 3-1.3 3-3S9.7 7 8 7 5 8.3 5 10s1.3 3 3 3Z"/></svg></div><div><div class="community-stat-mini-val">12.5k</div><div class="community-stat-mini-label">Total Members</div></div></div><div class="community-stat-mini"><div class="community-stat-mini-ico" style="background:rgba(34,197,94,.14);"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg></div><div><div class="community-stat-mini-val" id="onlineStatCount">1,256</div><div class="community-stat-mini-label">Online Now</div></div></div><div class="community-stat-mini"><div class="community-stat-mini-ico" style="background:rgba(59,130,246,.14);"><svg viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div><div class="community-stat-mini-val">842</div><div class="community-stat-mini-label">Messages Today</div></div></div><div class="community-stat-mini"><div class="community-stat-mini-ico" style="background:rgba(245,158,11,.14);"><svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/></svg></div><div><div class="community-stat-mini-val">156</div><div class="community-stat-mini-label">Withdrawals Today</div></div></div></div></div>
+                    </div>
+                </div>
+                <div id="winsProofsContent" style="display:none; padding: 0 0 120px 0;">
+                </div>
+            </div>
+            <div class="community-input-bar" id="communityInputBar">
+                <input type="text" class="community-chat-input-field" placeholder="Type a message...">
+                <button class="community-emoji-btn">😊</button>
+                <button class="community-send-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg></button>
+            </div>
+        </div>
+
+        <!-- PROFILE MODAL (overlay) -->
+        <div class="modal-overlay" id="profileModal">
+            <div class="modal-panel" style="max-width:400px;">
+                <div class="modal-header">
+                    <div class="modal-title">Profile</div>
+                    <button class="modal-close-btn" id="closeProfileModalBtn">✕</button>
+                </div>
+                <!-- Avatar -->
+                <div style="display:flex; align-items:center; gap:16px; margin-bottom:20px;">
+                    <div style="position:relative; display:inline-block;">
+                        <div class="drawer-avatar" style="width:64px; height:64px; margin:0;" id="profileAvatar"></div>
+                        <div id="profilePhotoOverlay" style="position:absolute; bottom:-2px; right:-2px; width:24px; height:24px; background:#9333ea; border-radius:50%; display:grid; place-items:center; cursor:pointer; box-shadow:0 0 8px rgba(0,0,0,.5);">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                        </div>
+                        <input type="file" id="profilePhotoInput" accept="image/*" style="display:none;">
+                    </div>
+                    <div id="removePhotoBtn" style="text-align:center; margin-top:8px; display:none;">
+                        <button style="background:none; border:1px solid rgba(239,68,68,.3); color:#f87171; padding:4px 14px; border-radius:999px; font-size:12px; cursor:pointer;">Remove Photo</button>
+                    </div>
+                    <div>
+                        <div id="profileFullName" style="font-size:16px; font-weight:700;"></div>
+                        <div id="profileMembership" style="font-size:13px; color:#a855f7;"></div>
+                        <div id="profileKycBadge" style="margin-top:4px;"></div>
+                    </div>
+                </div>
+                <!-- User Details -->
+                <div class="detail-square">
+                    <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value" id="profileEmail">---</span></div>
+                    <div class="detail-row"><span class="detail-label">Username</span><span class="detail-value" id="profileUsername">---</span></div>
+                    <div class="detail-row"><span class="detail-label">Country</span><span class="detail-value" id="profileCountry">---</span></div>
+                    <div class="detail-row"><span class="detail-label">Referral Code</span><span class="detail-value ref" id="profileReferral">---</span></div>
+                </div>
+                <!-- KYC Action -->
+                <button id="startKycBtn" class="withdraw-btn" style="margin-top:14px; display:none;">Verify Identity</button>
+                <!-- Settings -->
+                <div class="section-header" style="margin-top:24px;"><div class="section-title">Settings</div></div>
+                <div class="detail-square" style="margin-bottom:0;">
+                    <div class="detail-row" style="flex-direction:column; align-items:flex-start; gap:6px;">
+                        <span class="detail-label">Update Email</span>
+                        <input type="email" id="settingsNewEmail" class="profile-input" placeholder="New email" style="width:100%;">
+                        <button id="updateEmailBtn" class="small-action deposit-green" style="width:100%;">Update Email</button>
+                    </div>
+                    <div class="detail-row" style="flex-direction:column; align-items:flex-start; gap:6px; margin-top:12px;">
+                        <span class="detail-label">Change Password</span>
+                        <input type="password" id="settingsOldPassword" class="profile-input" placeholder="Old password" style="width:100%;">
+                        <input type="password" id="settingsNewPassword" class="profile-input" placeholder="New password" style="width:100%;">
+                        <input type="password" id="settingsConfirmPassword" class="profile-input" placeholder="Confirm new password" style="width:100%;">
+                        <button id="updatePasswordBtn" class="small-action deposit-purple" style="width:100%;">Change Password</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KYC MODAL (front/back capture with example images) -->
+        <div class="modal-overlay" id="kycModal">
+            <div class="modal-panel" style="max-width:400px;">
+                <div class="modal-header">
+                    <div class="modal-title" id="kycModalTitle">Verify Your Identity</div>
+                    <button class="modal-close-btn" id="closeKycModalBtn">✕</button>
+                </div>
+
+                <!-- Step 1: Introduction + Example Images -->
+                <div id="kycStep1">
+                    <div class="notice-box" style="margin-top:0; padding-top:0; border-top:0;">
+                        <div class="notice-title">Why verify?</div>
+                        <div class="notice-text">KYC helps protect your account and enables higher withdrawal limits.</div>
+                    </div>
+                    <div style="margin:16px 0;">
+                        <div class="field-label">Accepted ID types</div>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
+                            <span style="background:rgba(255,255,255,.04); padding:4px 10px; border-radius:999px; font-size:12px;">Passport</span>
+                            <span style="background:rgba(255,255,255,.04); padding:4px 10px; border-radius:999px; font-size:12px;">National ID</span>
+                            <span style="background:rgba(255,255,255,.04); padding:4px 10px; border-radius:999px; font-size:12px;">Driver's License</span>
+                        </div>
+                    </div>
+                    <div style="margin-bottom:16px;">
+                        <div class="field-label" style="text-align:center;">Position your ID like this:</div>
+                        <div style="display:flex; gap:16px; justify-content:center;">
+                            <div style="text-align:center;">
+                                <img src="assets/kyc/example_front.jpg" alt="ID Front Example" class="kyc-example-img" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+                                <div style="display:none; width:100%; max-width:160px; height:100px; background:rgba(255,255,255,.05); border-radius:12px; margin:0 auto 8px; line-height:100px; color:#6b7280; font-size:12px;">Front Example</div>
+                                <span style="font-size:11px; color:#9ca3af;">Front side</span>
+                            </div>
+                            <div style="text-align:center;">
+                                <img src="assets/kyc/example_back.jpg" alt="ID Back Example" class="kyc-example-img" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+                                <div style="display:none; width:100%; max-width:160px; height:100px; background:rgba(255,255,255,.05); border-radius:12px; margin:0 auto 8px; line-height:100px; color:#6b7280; font-size:12px;">Back Example</div>
+                                <span style="font-size:11px; color:#9ca3af;">Back side</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="startCameraBtn" class="withdraw-btn">Start Camera Scan</button>
+                </div>
+
+                <!-- Step 2: Capture Front -->
+                <div id="kycStep2" style="display:none;">
+                    <div class="field-label" style="text-align:center;">📸 Scan the <strong>front</strong> of your ID</div>
+                    <div style="position:relative; width:100%; max-width:320px; margin:0 auto 14px;">
+                        <video id="kycVideoFront" autoplay playsinline style="width:100%; border-radius:16px; background:#000;"></video>
+                        <canvas id="kycCanvasFront" style="display:none;"></canvas>
+                        <div class="kyc-id-overlay"><span>Align front side</span></div>
+                    </div>
+                    <div style="text-align:center;">
+                        <button id="captureFrontBtn" class="withdraw-btn" style="width:auto; padding:0 28px;">📷 Capture Front</button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Preview Front & Capture Back -->
+                <div id="kycStep3" style="display:none;">
+                    <div class="field-label" style="text-align:center;">✅ Front captured. Now scan the <strong>back</strong> of your ID</div>
+                    <div style="position:relative; width:100%; max-width:320px; margin:0 auto 14px;">
+                        <img id="previewFrontImage" style="width:100%; border-radius:16px; border:1px solid rgba(168,85,247,.2);" src="" alt="Front preview">
+                    </div>
+                    <div style="position:relative; width:100%; max-width:320px; margin:0 auto 14px;">
+                        <video id="kycVideoBack" autoplay playsinline style="width:100%; border-radius:16px; background:#000;"></video>
+                        <canvas id="kycCanvasBack" style="display:none;"></canvas>
+                        <div class="kyc-id-overlay"><span>Align back side</span></div>
+                    </div>
+                    <div style="text-align:center;">
+                        <button id="captureBackBtn" class="withdraw-btn" style="width:auto; padding:0 28px;">📷 Capture Back</button>
+                        <button id="retakeFrontBtn" class="btn btn-outline" style="width:auto; margin-top:8px; padding:0 28px;">↺ Retake Front</button>
+                    </div>
+                </div>
+
+                <!-- Step 4: Preview Both & Submit -->
+                <div id="kycStep4" style="display:none;">
+                    <div class="field-label" style="text-align:center;">Review your ID images</div>
+                    <div style="display:flex; gap:10px; margin-bottom:16px;">
+                        <div style="flex:1; text-align:center;">
+                            <img id="finalFrontImage" style="width:100%; border-radius:12px; border:1px solid rgba(255,255,255,.1);" src="" alt="Final front">
+                            <span style="font-size:11px; color:#9ca3af;">Front</span>
+                        </div>
+                        <div style="flex:1; text-align:center;">
+                            <img id="finalBackImage" style="width:100%; border-radius:12px; border:1px solid rgba(255,255,255,.1);" src="" alt="Final back">
+                            <span style="font-size:11px; color:#9ca3af;">Back</span>
+                        </div>
+                    </div>
+                    <button id="submitForReviewBtn" class="withdraw-btn">Submit for Review</button>
+                    <button id="retakeAllBtn" class="btn btn-outline" style="margin-top:8px;">↺ Retake All</button>
+                </div>
+
+                <!-- Step 5: Processing -->
+                <div id="kycStep5" style="display:none; text-align:center;">
+                    <div class="spinner" style="width:44px; height:44px; border-width:3px; margin:20px auto 12px;"></div>
+                    <div class="notice-text" id="kycProcessingText">Your documents are being reviewed. This usually takes 1–3 business days.</div>
+                </div>
+
+                <!-- Step 6: Success -->
+                <div id="kycStep6" style="display:none; text-align:center;">
+                    <div class="success-check-wrap"><div class="success-check-circle"></div><div class="success-check-mark"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7"/></svg></div></div>
+                    <div class="modal-title" style="margin-bottom:10px;">Verification Successful!</div>
+                    <div class="notice-text" id="kycSuccessText">Your identity has been verified. You now have full access to all features.</div>
+                    <button id="kycDoneBtn" class="withdraw-btn" style="margin-top:14px;">Done</button>
+                </div>
+
+                <!-- Step 7: Fail -->
+                <div id="kycStep7" style="display:none; text-align:center;">
+                    <div style="font-size:48px; margin-bottom:12px;">❌</div>
+                    <div class="modal-title" style="margin-bottom:10px;">Verification Failed</div>
+                    <div class="notice-text" id="kycErrorText">Could not match ID with your profile. Please try again.</div>
+                    <button id="kycRetryBtn" class="withdraw-btn" style="margin-top:14px;">Try Again</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODALS -->
+        <div class="modal-overlay" id="transactionModal"><div class="modal-panel"><div class="modal-header"><div class="modal-title" id="modalTitle">All Transactions</div><button class="modal-close-btn" id="modalCloseBtn">✕</button></div><div id="modalTransactionsList"></div></div></div>
+        <div class="modal-overlay" id="withdrawConfirmModal"><div class="modal-panel"><div class="modal-header"><div class="modal-title">Confirm Withdrawal</div><button class="modal-close-btn" id="closeWithdrawConfirmBtn">✕</button></div><div class="tx-row"><div class="tx-main"><div class="tx-title">Bank</div><div class="tx-sub" id="confirmBank">GTBank - 0123456789</div></div></div><div class="tx-row"><div class="tx-main"><div class="tx-title">Amount</div><div class="tx-sub" id="confirmAmount">₮ 0.00</div></div></div><div class="tx-row"><div class="tx-main"><div class="tx-title">Fee</div><div class="tx-sub" style="color:#f87171;">- <span id="confirmFee">₮ 50.00</span></div></div></div><div class="tx-row"><div class="tx-main"><div class="tx-title">You will receive</div><div class="tx-sub" style="color:#22c55e;font-weight:700;" id="confirmReceive">₮ 0.00</div></div></div><div class="tx-row"><div class="tx-main"><div class="tx-title">Date</div><div class="tx-sub" id="confirmDate">May 22, 2026</div></div></div><button style="width:100%;height:52px;border:0;border-radius:14px;color:#fff;font-size:16px;font-weight:700;background:linear-gradient(180deg,#7c3aed,#5b21b6);box-shadow:0 6px 18px rgba(124,58,237,.18);margin-top:14px;" id="finalConfirmWithdrawBtn">Confirm Withdrawal</button></div></div>
+        <div class="modal-overlay" id="investModal"><div class="modal-panel"><div class="modal-header"><div class="modal-title">Invest in <span id="investPlanName">Plan</span></div><button class="modal-close-btn" id="closeInvestModalBtn">✕</button></div><div class="field-label">Amount (min <span id="investMin">10,000</span>)</div><div class="amount-input"><input type="number" id="investAmountInput" class="placeholder" placeholder="Enter amount" style="background:transparent;border:none;color:#fff;font-size:16px;width:100%;outline:none"><span class="currency">USDT</span></div><span class="field-error" id="investError" style="display:none;"></span><div class="fee-row"><span>Daily Profit</span><span id="investDailyRate">0.8% – 1.0%</span></div><div class="receive-row"><span>Expected Return (30 days)</span><span style="color:#22c55e;font-weight:700;" id="investExpectedReturn">₮ 0.00</span></div><button class="withdraw-btn" id="confirmInvestBtn" style="margin-top:14px;">Proceed to Payment</button></div></div>
+        <div class="modal-overlay" id="paymentModal"><div class="modal-panel"><div class="modal-header"><div class="modal-title" id="paymentModalTitle">Deposit Payment</div><button class="modal-close-btn" id="closePaymentModalBtn">✕</button></div><div class="field-label">Amount to Pay</div><div class="amount-input"><span class="placeholder" id="paymentAmount">₮ 0.00</span><span class="currency">USDT</span></div><div class="payment-account-card"><button class="copy-btn" id="copyAccountBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button><div class="payment-account-name">Anthony Diamond</div><div class="payment-account-number" id="accountNumberDisplay">0025722037</div><div class="payment-account-bank">Jaiz Bank</div></div><div class="notice-box"><div class="notice-title">Payment Instructions:</div><div class="notice-text">Transfer the exact amount above to the provided account. Once payment is confirmed, your balance will be credited automatically.</div></div><button class="withdraw-btn" id="confirmPaymentBtn" style="margin-top:14px;">I've Made Payment</button></div></div>
+        <div class="modal-overlay" id="depositModal"><div class="modal-panel"><div class="modal-header"><div class="modal-title">Enter Deposit Amount</div><button class="modal-close-btn" id="closeDepositModalBtn">✕</button></div><div class="field-label">How much would you like to deposit?</div><div class="amount-input"><input type="number" id="depositAmountInput" class="placeholder" placeholder="Enter amount" style="background:transparent;border:none;color:#fff;font-size:16px;width:100%;outline:none"><span class="currency">USDT</span></div><div class="amount-presets"><button type="button" class="preset" data-amount="5">5</button><button type="button" class="preset" data-amount="10">10</button><button type="button" class="preset" data-amount="50">50</button><button type="button" class="preset" data-amount="100">100</button><button type="button" class="preset" data-amount="500">500</button></div><div class="field-error" id="depositError" style="display:none;"></div><button class="withdraw-btn" id="confirmDepositBtn" style="margin-top:8px;">Proceed to Payment</button></div></div>
+        <div class="modal-overlay" id="transferModal"><div class="modal-panel"><div class="modal-header"><div class="modal-title">Transfer Funds</div><button class="modal-close-btn" id="closeTransferModalBtn">✕</button></div><div class="field-label">Recipient Username</div><div class="amount-input"><input type="text" id="transferRecipient" placeholder="Enter username" style="background:transparent;border:none;color:#fff;font-size:16px;width:100%;outline:none"></div><div class="field-label">Amount</div><div class="amount-input"><input type="number" id="transferAmountInput" class="placeholder" placeholder="Enter amount" style="background:transparent;border:none;color:#fff;font-size:16px;width:100%;outline:none"><span class="currency">USDT</span></div><div class="fee-row"><span>Fee</span><span>₮ 0.00 (Free)</span></div><button class="withdraw-btn" id="confirmTransferBtn" style="margin-top:14px;">Send Transfer</button></div></div>
+        <div class="modal-overlay" id="cardModal"><div class="modal-panel"><div class="modal-header"><div class="modal-title">Virtual Card</div><button class="modal-close-btn" id="closeCardModalBtn">✕</button></div><div class="payment-account-card" id="cardDetailsDisplay"><div class="payment-account-name">No card added</div><div class="payment-account-number">Add your card to get started</div></div><div class="field-label">Card Number</div><div class="amount-input"><input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" style="background:transparent;border:none;color:#fff;font-size:16px;width:100%;outline:none"></div><div class="field-label">Expiry Date (MM/YY)</div><div class="amount-input"><input type="text" id="cardExpiry" placeholder="MM/YY" style="background:transparent;border:none;color:#fff;font-size:16px;width:100%;outline:none"></div><div class="field-label">CVV</div><div class="amount-input"><input type="text" id="cardCvv" placeholder="123" style="background:transparent;border:none;color:#fff;font-size:16px;width:100%;outline:none"></div><button class="withdraw-btn" id="saveCardBtn" style="margin-top:14px;">Save Card</button></div></div>
+        <div class="processing-overlay" id="processingOverlay"><div class="spinner"></div><div class="processing-text">Processing...</div></div>
+        <div class="modal-overlay" id="withdrawalSuccessModal"><div class="modal-panel" style="text-align:center; padding:30px 20px;"><div class="success-check-wrap"><div class="success-check-circle"></div><div class="success-check-mark"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7"/></svg></div></div><div class="modal-title" style="margin-bottom:20px;font-size:20px;">Withdrawal Successful!</div><div class="detail-square"><div class="detail-row"><span class="detail-label">Bank</span><span class="detail-value" id="successBank">GTBank</span></div><div class="detail-row"><span class="detail-label">Amount</span><span class="detail-value" id="successAmount">₮ 0.00</span></div><div class="detail-row"><span class="detail-label">Fee</span><span class="detail-value red" id="successFee">- ₮ 50.00</span></div><div class="detail-row"><span class="detail-label">You Received</span><span class="detail-value green" id="successReceive">₮ 0.00</span></div><div class="detail-row"><span class="detail-label">Date</span><span class="detail-value" id="successDate">May 22, 2026</span></div><div class="detail-row"><span class="detail-label">Reference</span><span class="detail-value ref" id="successRef">WD87264521</span></div></div><button class="withdraw-btn" id="closeSuccessModalBtn">Done</button></div></div>
+        <div class="modal-overlay" id="withdrawalReceiptModal"><div class="modal-panel" style="text-align:center; padding:30px 20px;"><div class="modal-header"><div class="modal-title">Withdrawal Receipt</div><button class="modal-close-btn" id="closeWithdrawalReceiptBtn">✕</button></div><div class="detail-square"><div class="detail-row"><span class="detail-label">Bank / Method</span><span class="detail-value" id="receiptBank">-</span></div><div class="detail-row"><span class="detail-label">Amount</span><span class="detail-value" id="receiptAmount">-</span></div><div class="detail-row"><span class="detail-label">Fee</span><span class="detail-value red" id="receiptFee">-</span></div><div class="detail-row"><span class="detail-label">You Received</span><span class="detail-value green" id="receiptReceive">-</span></div><div class="detail-row"><span class="detail-label">Date & Time</span><span class="detail-value" id="receiptDateTime">-</span></div><div class="detail-row"><span class="detail-label">Status</span><span class="detail-value green" id="receiptStatus">Completed</span></div><div class="detail-row"><span class="detail-label">Reference</span><span class="detail-value ref" id="receiptRef">-</span></div></div><button class="withdraw-btn" id="closeReceiptBtn">Close</button></div></div>
+        <div class="modal-overlay" id="helpModal"><div class="modal-panel"><div class="modal-header"><div class="modal-title">Help Center</div><button class="modal-close-btn" id="closeHelpModalBtn">✕</button></div><div class="notice-box"><div class="notice-title">24/7 Support</div><div class="notice-text">Our support team is available around the clock. Send us a message and we'll get back to you within minutes.</div></div><button class="withdraw-btn" style="margin-top:16px;">Contact Support</button></div></div>
+        <div class="modal-overlay" id="settingsModal"><div class="modal-panel"><div class="modal-header"><div class="modal-title">Settings</div><button class="modal-close-btn" id="closeSettingsModalBtn">✕</button></div><div class="field-label">Notification Preferences</div><div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,.05);"><span>Push Notifications</span><label class="switch" style="position:relative; display:inline-block; width:44px; height:24px;"><input type="checkbox" checked style="opacity:0;width:0;height:0;"><span style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:rgba(255,255,255,.2); border-radius:24px; transition:.3s;"></span></label></div><div class="field-label" style="margin-top:14px;">Language</div><select style="width:100%;height:48px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:#0b1020;color:#fff;padding:0 12px;font-size:14px;margin-bottom:14px;"><option>English</option></select><div class="field-label">Display</div><div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0;"><span>Dark Mode</span><label class="switch" style="position:relative; display:inline-block; width:44px; height:24px;"><input type="checkbox" checked style="opacity:0;width:0;height:0;"><span style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:rgba(255,255,255,.2); border-radius:24px; transition:.3s;"></span></label></div><button class="withdraw-btn" style="margin-top:20px;">Save Settings</button></div></div>
+        <div class="modal-overlay" id="securityModal"><div class="modal-panel"><div class="modal-header"><div class="modal-title">Security Center</div><button class="modal-close-btn" id="closeSecurityModalBtn">✕</button></div><div class="notice-box"><div class="notice-title">2FA PIN Setup</div><div class="notice-text">Set a 6-digit PIN for withdrawals and security.</div></div><div class="field-label">Enter 6-digit PIN</div><div class="amount-input"><input type="password" id="twoFaPin" maxlength="6" placeholder="••••••" style="background:transparent;border:none;color:#fff;font-size:16px;width:100%;outline:none"></div><div class="field-label">Confirm PIN</div><div class="amount-input"><input type="password" id="twoFaPinConfirm" maxlength="6" placeholder="••••••" style="background:transparent;border:none;color:#fff;font-size:16px;width:100%;outline:none"></div><span id="pinError" class="field-error" style="display:none;">PINs do not match</span><button class="withdraw-btn" id="enable2faBtn" style="margin-top:16px;">Enable 2FA</button><button class="withdraw-btn" id="changePinBtn" style="margin-top:16px; display:none;">Change PIN</button></div></div>
+        <div class="modal-overlay" id="notificationsModal"><div class="modal-panel"><div class="modal-header"><div class="modal-title">Notifications</div><button class="modal-close-btn" id="closeNotificationsModalBtn">✕</button></div><div id="notificationsList"></div></div></div>
+        <div class="modal-overlay" id="referModal">
+            <div class="modal-panel">
+                <div class="modal-header">
+                    <div class="modal-title">Refer & Earn</div>
+                    <button class="modal-close-btn" id="closeReferModalBtn">✕</button>
+                </div>
+                <div class="payment-account-card">
+                    <div class="payment-account-name">Your Referral Code</div>
+                    <div class="payment-account-number" id="referralCodeDisplay" style="font-size:28px;">--------</div>
+                    <div class="payment-account-bank">Share with friends and earn 5% commission</div>
+                </div>
+                <div class="detail-square">
+                    <div class="detail-row"><span class="detail-label">Total Referrals</span><span class="detail-value" id="referralCount">0</span></div>
+                    <div class="detail-row"><span class="detail-label">Commissions Earned</span><span class="detail-value green" id="commissionEarned">₮ 0.00</span></div>
+                </div>
+                <div class="refer-how-box">
+                    <div class="refer-how-title" id="referHowTitle">
+                        How does it work? 
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+                    </div>
+                    <div class="refer-instructions" id="referInstructions">
+                        <div style="margin-bottom:8px;">
+                            <div style="font-weight:600; color:#b56cff;">1. Invite Friends</div>
+                            <div>Share your referral code. When they sign up and verify their identity, they become eligible.</div>
+                        </div>
+                        <div style="margin-bottom:8px;">
+                            <div style="font-weight:600; color:#b56cff;">2. They Make a Deposit</div>
+                            <div>Your friend must deposit a minimum of $10 (or equivalent in any currency) within 30 days.</div>
+                        </div>
+                        <div>
+                            <div style="font-weight:600; color:#b56cff;">3. Both Earn Commission</div>
+                            <div>You receive 5% of their deposit amount, and they receive a $5 welcome bonus.</div>
+                        </div>
+                    </div>
+                </div>
+                <button class="withdraw-btn" id="copyReferBtn" style="margin-top:14px;">Copy Referral Code</button>
+            </div>
+        </div>
+        
+        <div class="modal-overlay" id="comparePlansModal"><div class="modal-panel"><div class="modal-header"><div class="modal-title">Compare Plans</div><button class="modal-close-btn" id="closeCompareModalBtn">✕</button></div><div style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px; font-size:13px;"><div style="background:rgba(34,197,94,.08); border-radius:12px; padding:10px; border:1px solid rgba(34,197,94,.2);"><div style="color:#22c55e; font-weight:700; margin-bottom:6px;">Beginner</div><div>Min: ₦10,000</div><div>Max: ₦49,999</div><div>Daily: 3.0%</div><div>Monthly ROI: 90%</div></div><div style="background:rgba(168,85,247,.08); border-radius:12px; padding:10px; border:1px solid rgba(168,85,247,.2);"><div style="color:#b56cff; font-weight:700; margin-bottom:6px;">Standard</div><div>Min: ₦50,000</div><div>Max: ₦199,999</div><div>Daily: 3.5%</div><div>Monthly ROI: 105%</div></div><div style="background:rgba(245,158,11,.08); border-radius:12px; padding:10px; border:1px solid rgba(245,158,11,.2);"><div style="color:#f59e0b; font-weight:700; margin-bottom:6px;">Premium</div><div>Min: ₦200,000</div><div>Max: ₦499,999</div><div>Daily: 4.0%</div><div>Monthly ROI: 120%</div></div><div style="background:rgba(59,130,246,.08); border-radius:12px; padding:10px; border:1px solid rgba(59,130,246,.2);"><div style="color:#3b82f6; font-weight:700; margin-bottom:6px;">VIP</div><div>Min: ₦500,000</div><div>Max: Unlimited</div><div>Daily: 4.5%</div><div>Monthly ROI: 135%</div></div></div><div class="notice-box" style="margin-top:14px;"><div class="notice-title">Note:</div><div class="notice-text">All plans return principal + profit at the end of the duration.</div></div></div></div>
+        <div class="modal-overlay" id="overviewDetailModal"><div class="modal-panel"><div class="modal-header"><div class="modal-title" id="overviewDetailTitle">Detail</div><button class="modal-close-btn" id="closeOverviewDetailBtn">✕</button></div><div class="detail-square"><div class="detail-row"><span class="detail-label">Value</span><span class="detail-value" id="overviewDetailValue">₮0.00</span></div><div class="detail-row"><span class="detail-label">Description</span><span class="detail-value" id="overviewDetailDesc">-</span></div></div></div></div>
+        <div class="modal-overlay" id="transferSuccessModal"><div class="modal-panel" style="text-align:center; padding:30px 20px;"><div class="success-check-wrap"><div class="success-check-circle"></div><div class="success-check-mark"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7"/></svg></div></div><div class="modal-title" style="margin-bottom:20px;font-size:20px;">Transfer Successful!</div><div class="detail-square"><div class="detail-row"><span class="detail-label">Recipient</span><span class="detail-value" id="transferSuccessRecipient">-</span></div><div class="detail-row"><span class="detail-label">Amount</span><span class="detail-value" id="transferSuccessAmount">₮0.00</span></div><div class="detail-row"><span class="detail-label">Fee</span><span class="detail-value">₮ 0.00 (Free)</span></div><div class="detail-row"><span class="detail-label">Date</span><span class="detail-value" id="transferSuccessDate">-</span></div><div class="detail-row"><span class="detail-label">Reference</span><span class="detail-value ref" id="transferSuccessRef">-</span></div></div><button class="withdraw-btn" id="closeTransferSuccessBtn">Done</button></div></div>
+        <div class="modal-overlay" id="logoutConfirmModal"><div class="modal-panel" style="text-align:center; padding:30px 20px;"><div class="modal-title" style="margin-bottom:20px;">Confirm Logout</div><div class="notice-text" style="margin-bottom:24px;">Are you sure you want to log out of your account?</div><div style="display:flex; gap:12px;"><button id="confirmLogoutBtn" class="withdraw-btn" style="background:linear-gradient(180deg,#ef4444,#b91c1c);">Logout</button><button id="cancelLogoutBtn" class="btn btn-outline" style="flex:1;">Cancel</button></div></div></div>
+
+        <!-- BOTTOM NAV -->
+        <div class="bottom-nav"><div class="nav-shell">
+            <button class="nav-item active" data-view="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9v11h6v-6h2v6h6V9"/></svg><span>Home</span><span class="dot"></span></button>
+            <button class="nav-item" data-view="invest"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-6"/><path d="M12 16V8"/><path d="M16 16v-3"/></svg><span>Invest</span><span class="dot"></span></button>
+            <button class="nav-item" data-view="withdraw"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg><span>Withdraw</span><span class="dot"></span></button>
+            <button class="nav-item" data-view="wallet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18v10H3z"/><path d="M7 7v10"/><path d="M17 7v10"/><path d="M8 11h8"/></svg><span>Wallet</span><span class="dot"></span></button>
+            <button class="nav-item" data-view="community"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3Z"/><path d="M8 13c1.7 0 3-1.3 3-3S9.7 7 8 7 5 8.3 5 10s1.3 3 3 3Z"/><path d="M3 19c.7-2.7 3-4 5-4s4.3 1.3 5 4"/></svg><span>Community</span><span class="dot"></span></button>
+        </div></div>
+
+        <script src="main.js"></script>
+        <script src="community.js"></script>
+        <script src="community-members.js"></script>
+        <script src="profile.js"></script>
+        <script>
+            (function () {
+                'use strict';
+
+                const MASTER_INVITE_CODE = 'REFJ4HEHFXK';
+                const USER_KEY = 'tradePulseUsers';
+                const LEGACY_USER_KEY = 'tradePulseUser';
+                const CURRENT_KEY = 'tradePulseCurrentUser';
+                const LOGIN_KEY = 'tradePulseLoggedIn';
+
+                const $ = (id) => document.getElementById(id);
+
+                function safeParse(value, fallback) {
+                    try { return JSON.parse(value); } catch { return fallback; }
+                }
+
+                function loadUsers() {
+                    const raw = localStorage.getItem(USER_KEY);
+                    const users = safeParse(raw, null);
+                    if (Array.isArray(users)) return users;
+                    const legacy = safeParse(localStorage.getItem(LEGACY_USER_KEY), null);
+                    if (legacy && typeof legacy === 'object' && !Array.isArray(legacy)) {
+                        const arr = [legacy];
+                        saveUsers(arr);
+                        return arr;
+                    }
+                    return [];
+                }
+
+                function saveUsers(users) {
+                    if (!Array.isArray(users)) return;
+                    localStorage.setItem(USER_KEY, JSON.stringify(users));
+                    if (users.length > 0) {
+                        localStorage.setItem(LEGACY_USER_KEY, JSON.stringify(users[0]));
+                    } else {
+                        localStorage.removeItem(LEGACY_USER_KEY);
+                    }
+                }
+
+                function getStoredCurrentUser() {
+                    return safeParse(sessionStorage.getItem(CURRENT_KEY), null);
+                }
+
+                function saveCurrentUser(user) {
+                    if (!user || !user.username) return;
+                    sessionStorage.setItem(LOGIN_KEY, 'true');
+                    sessionStorage.setItem(CURRENT_KEY, JSON.stringify(user));
+                    const users = loadUsers();
+                    const index = users.findIndex((u) => u.username === user.username);
+                    if (index >= 0) {
+                        users[index] = user;
+                    } else {
+                        users.push(user);
+                    }
+                    saveUsers(users);
+                }
+
+                function generateUserId() {
+                    return `TPA${Math.floor(10000000 + Math.random() * 90000000)}`;
+                }
+
+                function generateReferralCode() {
+                    return `REF${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
+                }
+
+                function isValidReferralCode(code) {
+                    if (code === MASTER_INVITE_CODE) return true;
+                    const users = loadUsers();
+                    return users.some(u => u.referralCode === code);
+                }
+
+                function isValidUsername(username) {
+                    return /^[a-zA-Z0-9_]{5,}$/.test(username) && !/\s/.test(username);
+                }
+
+                function isValidPassword(password) {
+                    return password.length >= 6 && /[!@#$%^&*(),.?":{}|<>]/.test(password);
+                }
+
+                function setAuthMode(isSignUp) {
+                    const signInToggle = $('signInToggle');
+                    const signUpToggle = $('signUpToggle');
+                    const fullNameGroup = $('fullNameGroup');
+                    const emailGroup = $('emailGroup');
+                    const countryGroup = $('countryGroup');
+                    const inviteCodeGroup = $('inviteCodeGroup');
+                    const inviteNote = $('inviteNote');
+                    const submitBtn = $('submitBtn');
+                    const loginTitle = $('loginTitle');
+                    const loginSubtitle = $('loginSubtitle');
+
+                    if (isSignUp) {
+                        signUpToggle?.classList.add('active');
+                        signInToggle?.classList.remove('active');
+                        if (loginTitle) loginTitle.textContent = 'Create Account';
+                        if (loginSubtitle) loginSubtitle.textContent = 'Join the exclusive trading community';
+                        if (fullNameGroup) fullNameGroup.style.display = 'block';
+                        if (emailGroup) emailGroup.style.display = 'block';
+                        if (countryGroup) countryGroup.style.display = 'block';
+                        if (inviteCodeGroup) inviteCodeGroup.style.display = 'block';
+                        if (inviteNote) inviteNote.style.display = 'block';
+                        if (submitBtn) submitBtn.textContent = 'Sign Up';
+                    } else {
+                        signInToggle?.classList.add('active');
+                        signUpToggle?.classList.remove('active');
+                        if (loginTitle) loginTitle.textContent = 'Sign In';
+                        if (loginSubtitle) loginSubtitle.textContent = 'Access your private trading dashboard';
+                        if (fullNameGroup) fullNameGroup.style.display = 'none';
+                        if (emailGroup) emailGroup.style.display = 'none';
+                        if (countryGroup) countryGroup.style.display = 'none';
+                        if (inviteCodeGroup) inviteCodeGroup.style.display = 'block';
+                        if (inviteNote) inviteNote.style.display = 'block';
+                        if (submitBtn) submitBtn.textContent = 'Sign In';
+                    }
+
+                    if ($('errorMsg')) $('errorMsg').textContent = '';
+                    if ($('successMsg')) $('successMsg').textContent = '';
+                }
+
+                function initCountryDropdown() {
+                    const countries = [
+                        "Algeria", "Argentina", "Australia", "Austria", "Bahrain", "Bangladesh",
+                        "Belgium", "Bolivia", "Brazil", "Bulgaria", "Cambodia", "Canada",
+                        "Chile", "China", "Colombia", "Costa Rica", "Croatia", "Cyprus",
+                        "Czech Republic", "Denmark", "Ecuador", "Egypt", "El Salvador",
+                        "Estonia", "Ethiopia", "Fiji", "Finland", "France", "Germany",
+                        "Ghana", "Greece", "Guatemala", "Honduras", "Hungary", "Iceland",
+                        "India", "Indonesia", "Ireland", "Israel", "Italy", "Ivory Coast",
+                        "Japan", "Jordan", "Kazakhstan", "Kenya", "Kuwait", "Latvia",
+                        "Lebanon", "Lithuania", "Luxembourg", "Malaysia", "Malta", "Mexico",
+                        "Morocco", "Myanmar", "Nepal", "Netherlands", "New Zealand",
+                        "Nicaragua", "Nigeria", "Norway", "Oman", "Pakistan", "Panama",
+                        "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar",
+                        "Romania", "Russia", "Rwanda", "Saudi Arabia", "Senegal",
+                        "Singapore", "Slovakia", "Slovenia", "South Africa", "South Korea",
+                        "Spain", "Sri Lanka", "Sweden", "Switzerland", "Tanzania",
+                        "Thailand", "Tunisia", "Turkey", "Uganda", "Ukraine",
+                        "United Arab Emirates", "United Kingdom", "United States",
+                        "Uruguay", "Venezuela", "Vietnam"
+                    ].sort();
+
+                    const dropdown = document.getElementById('countryDropdown');
+                    const btn = document.getElementById('countrySelectorBtn');
+                    const selectedText = document.getElementById('selectedCountryText');
+
+                    if (!dropdown || !btn) return;
+
+                    dropdown.innerHTML = countries.map(c => `
+                        <div class="country-option" data-country="${c}">${c}</div>
+                    `).join('');
+
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+                    });
+
+                    dropdown.addEventListener('click', (e) => {
+                        const option = e.target.closest('.country-option');
+                        if (!option) return;
+                        const country = option.dataset.country;
+                        selectedText.textContent = country;
+                        selectedText.style.color = '#fff';
+                        dropdown.querySelectorAll('.country-option').forEach(o => o.classList.remove('selected'));
+                        option.classList.add('selected');
+                        dropdown.style.display = 'none';
+                    });
+
+                    document.addEventListener('click', (e) => {
+                        if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+                            dropdown.style.display = 'none';
+                        }
+                    });
+                }
+
+                function openForgotPasswordModal() {
+                    const modal = $('forgotPasswordModal');
+                    if (modal) {
+                        if ($('resetFullName')) $('resetFullName').value = '';
+                        if ($('resetUsername')) $('resetUsername').value = '';
+                        if ($('resetInviteCode')) $('resetInviteCode').value = '';
+                        if ($('resetNewPassword')) $('resetNewPassword').value = '';
+                        if ($('resetConfirmPassword')) $('resetConfirmPassword').value = '';
+                        if ($('resetError')) $('resetError').textContent = '';
+                        if ($('resetSuccess')) $('resetSuccess').textContent = '';
+                        modal.classList.add('open');
+                    }
+                }
+
+                function closeForgotPasswordModal() {
+                    const modal = $('forgotPasswordModal');
+                    if (modal) modal.classList.remove('open');
+                }
+
+                function setupAuth() {
+                    const authForm = $('authForm');
+                    const signInToggle = $('signInToggle');
+                    const signUpToggle = $('signUpToggle');
+                    const eyeBtn = $('eyeBtn');
+                    const passwordInput = $('password');
+                    const forgotPasswordBtn = $('forgotPasswordBtn');
+
+                    signInToggle?.addEventListener('click', () => setAuthMode(false));
+                    signUpToggle?.addEventListener('click', () => setAuthMode(true));
+
+                    eyeBtn?.addEventListener('click', () => {
+                        if (!passwordInput) return;
+                        const isPassword = passwordInput.type === 'password';
+                        passwordInput.type = isPassword ? 'text' : 'password';
+                        eyeBtn.textContent = isPassword ? '🙈' : '👁️';
+                    });
+
+                    forgotPasswordBtn?.addEventListener('click', openForgotPasswordModal);
+                    $('closeForgotPasswordBtn')?.addEventListener('click', closeForgotPasswordModal);
+
+                    $('forgotPasswordModal')?.addEventListener('click', (e) => {
+                        if (e.target.id === 'forgotPasswordModal') closeForgotPasswordModal();
+                    });
+
+                    $('confirmResetPasswordBtn')?.addEventListener('click', () => {
+                        const fullName = ($('resetFullName')?.value || '').trim();
+                        const username = ($('resetUsername')?.value || '').trim();
+                        const invite = ($('resetInviteCode')?.value || '').trim();
+                        const pw1 = $('resetNewPassword')?.value || '';
+                        const pw2 = $('resetConfirmPassword')?.value || '';
+                        const err = $('resetError');
+                        const ok = $('resetSuccess');
+
+                        if (err) err.textContent = '';
+                        if (ok) ok.textContent = '';
+
+                        if (!fullName || !username || !invite || !pw1 || !pw2) {
+                            if (err) err.textContent = 'Fill in all fields.';
+                            return;
+                        }
+                        if (invite !== MASTER_INVITE_CODE && !loadUsers().some(u => u.referralCode === invite)) {
+                            if (err) err.textContent = 'Invalid invitation code.';
+                            return;
+                        }
+                        if (!isValidPassword(pw1)) {
+                            if (err) err.textContent = 'Password must be at least 6 characters and include a special character (!@#$%^&*).';
+                            return;
+                        }
+                        if (pw1 !== pw2) {
+                            if (err) err.textContent = 'Passwords do not match.';
+                            return;
+                        }
+
+                        const users = loadUsers();
+                        const user = users.find((u) => u.username === username);
+                        if (!user) {
+                            if (err) err.textContent = 'User not found.';
+                            return;
+                        }
+                        if (user.fullName && user.fullName.toLowerCase() !== fullName.toLowerCase()) {
+                            if (err) err.textContent = 'Full name does not match our records.';
+                            return;
+                        }
+
+                        user.password = pw1;
+                        saveUsers(users);
+
+                        if (ok) ok.textContent = 'Password updated successfully.';
+                        setTimeout(closeForgotPasswordModal, 1200);
+                    });
+
+                    authForm?.addEventListener('submit', (e) => {
+                        e.preventDefault();
+
+                        const errorMsg = $('errorMsg');
+                        const successMsg = $('successMsg');
+                        if (errorMsg) errorMsg.textContent = '';
+                        if (successMsg) successMsg.textContent = '';
+
+                        const username = ($('username')?.value || '').trim();
+                        const password = ($('password')?.value || '').trim();
+                        const inviteCode = ($('inviteCode')?.value || '').trim();
+                        const fullName = ($('fullName')?.value || '').trim();
+                        const email = ($('email')?.value || '').trim();
+                        const selectedCountry = document.getElementById('selectedCountryText')?.textContent || '';
+                        const country = selectedCountry !== 'Select Country' ? selectedCountry : '';
+                        const submitBtn = $('submitBtn');
+                        const isSignUp = submitBtn?.textContent?.trim() === 'Sign Up';
+                        const originalBtnText = submitBtn ? submitBtn.textContent : 'Submit';
+
+                        if (submitBtn) {
+                            submitBtn.disabled = true;
+                            submitBtn.textContent = isSignUp ? 'Creating Account…' : 'Signing In…';
+                        }
+
+                        function resetButton() {
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                submitBtn.textContent = originalBtnText;
+                            }
+                        }
+
+                        if (!username || !password || !inviteCode) {
+                            if (errorMsg) errorMsg.textContent = 'Please fill in all required fields.';
+                            resetButton();
+                            return;
+                        }
+
+                        if (!isValidReferralCode(inviteCode)) {
+                            if (errorMsg) errorMsg.textContent = 'Invalid invitation code.';
+                            resetButton();
+                            return;
+                        }
+
+                        const users = loadUsers();
+
+                        if (isSignUp) {
+                            if (!fullName || !email) {
+                                if (errorMsg) errorMsg.textContent = 'Please fill in all fields.';
+                                resetButton();
+                                return;
+                            }
+
+                            if (!isValidUsername(username)) {
+                                if (errorMsg) errorMsg.textContent = 'Username must be at least 5 characters, no spaces, only letters, numbers, underscores.';
+                                resetButton();
+                                return;
+                            }
+
+                            if (!isValidPassword(password)) {
+                                if (errorMsg) errorMsg.textContent = 'Password must be at least 6 characters and include at least one special character (!@#$%^&*).';
+                                resetButton();
+                                return;
+                            }
+
+                            if (users.some((u) => u.username === username)) {
+                                if (errorMsg) errorMsg.textContent = 'Username already exists.';
+                                resetButton();
+                                return;
+                            }
+
+                            const normalizedEmail = email.toLowerCase();
+                            if (users.some((u) => u.email && u.email.toLowerCase() === normalizedEmail)) {
+                                if (errorMsg) errorMsg.textContent = 'Email already exists.';
+                                resetButton();
+                                return;
+                            }
+
+                            const user = {
+                                fullName,
+                                username,
+                                email: normalizedEmail,
+                                password,
+                                userId: generateUserId(),
+                                referralCode: generateReferralCode(),
+                                membership: 'Beginner',
+                                referrals: 0,
+                                commission: 0,
+                                avatar: '',
+                                twoFaEnabled: false,
+                                savedCard: null,
+                                homeBalance: 0,
+                                totalInvested: 0,
+                                totalProfit: 0,
+                                totalWithdrawn: 0,
+                                activePlans: 0,
+                                country: country,
+                            };
+
+                            if (inviteCode !== MASTER_INVITE_CODE) {
+                                const referrer = users.find(u => u.referralCode === inviteCode);
+                                if (referrer) {
+                                    referrer.referrals = (referrer.referrals || 0) + 1;
+                                    const refIndex = users.findIndex(u => u.username === referrer.username);
+                                    if (refIndex !== -1) {
+                                        users[refIndex] = referrer;
+                                    }
+                                }
+                            }
+
+                            users.push(user);
+                            saveUsers(users);
+                            saveCurrentUser(user);
+
+                            if (successMsg) successMsg.textContent = 'Account created successfully.';
+
+                            setTimeout(() => {
+                                const loginScreen = $('loginScreen');
+                                const mainApp = $('mainApp');
+                                if (loginScreen) loginScreen.style.display = 'none';
+                                if (mainApp) mainApp.style.display = 'block';
+                                if (window.updateDrawerUserInfo) window.updateDrawerUserInfo();
+                                if (submitBtn) {
+                                    submitBtn.disabled = false;
+                                    submitBtn.textContent = originalBtnText;
+                                }
+                            }, 800);
+                            return;
+                        }
+
+                        // SIGN IN FLOW
+                        const user = users.find((u) =>
+                            (u.username === username || (u.email && u.email.toLowerCase() === username.toLowerCase())) &&
+                            u.password === password
+                        );
+
+                        if (!user) {
+                            if (errorMsg) errorMsg.textContent = 'Invalid username or password.';
+                            resetButton();
+                            return;
+                        }
+
+                        saveCurrentUser(user);
+
+                        if (successMsg) successMsg.textContent = 'Signing in…';
+
+                        setTimeout(() => {
+                            const loginScreen = $('loginScreen');
+                            const mainApp = $('mainApp');
+                            if (loginScreen) loginScreen.style.display = 'none';
+                            if (mainApp) mainApp.style.display = 'block';
+                            if (window.updateDrawerUserInfo) window.updateDrawerUserInfo();
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                submitBtn.textContent = originalBtnText;
+                            }
+                        }, 600);
+                    });
+                }
+
+                document.addEventListener('DOMContentLoaded', () => {
+                    setupAuth();
+                    initCountryDropdown();
+
+                    if (sessionStorage.getItem(LOGIN_KEY) === 'true') {
+                        const loginScreen = $('loginScreen');
+                        const mainApp = $('mainApp');
+                        if (loginScreen) loginScreen.style.display = 'none';
+                        if (mainApp) mainApp.style.display = 'block';
+                        if (window.updateDrawerUserInfo) window.updateDrawerUserInfo();
+                    } else {
+                        setAuthMode(false);
+                    }
+                });
+            })();
+        </script>
+    </div>
+</body>
+</html>
